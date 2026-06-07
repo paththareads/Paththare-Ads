@@ -25,6 +25,8 @@ export default function HomePage() {
   //new slider
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(0);
+  const [carouselReady, setCarouselReady] = useState(false);
 
   useEffect(() => {
     async function loadPromos() {
@@ -40,6 +42,12 @@ export default function HomePage() {
 
     loadPromos();
   }, []);
+
+  useEffect(() => {
+    if (promos.length > 0 && imagesLoaded >= promos.length) {
+      setCarouselReady(true);
+    }
+  }, [imagesLoaded, promos.length]);
 
   const secondsPerSlide = 4; // adjust speed here
 
@@ -149,6 +157,11 @@ export default function HomePage() {
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
             >
+              {!carouselReady && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-[var(--color-primary)]" />
+                </div>
+              )}
               {/* SLIDES */}
               <div
                 className="flex transition-transform duration-700 ease-in-out"
@@ -163,14 +176,20 @@ export default function HomePage() {
                         <img
                           src={promo.ad_image}
                           alt={promo.ad_name}
-                          className="h-[250px] md:h-[510px] w-full object-contain md:object-cover"
+                          onLoad={() => setImagesLoaded((prev) => prev + 1)}
+                          className={`h-[250px] md:h-[510px] w-full object-contain md:object-cover transition-opacity duration-500 ${
+                            carouselReady ? "opacity-100" : "opacity-0"
+                          }`}
                         />
                       </a>
                     ) : (
                       <img
                         src={promo.ad_image}
                         alt={promo.ad_name}
-                        className="h-[250px] md:h-[510px] w-full object-contain md:object-cover"
+                        onLoad={() => setImagesLoaded((prev) => prev + 1)}
+                        className={`h-[250px] md:h-[510px] w-full object-contain md:object-cover transition-opacity duration-500 ${
+                          carouselReady ? "opacity-100" : "opacity-0"
+                        }`}
                       />
                     )}
                   </div>
