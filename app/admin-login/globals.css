@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+@theme {
+  /* --color-primary: #383a3d;
+  --color-primary-dark: #1e2021;
+  --color-primary-accent: #d7cfcd;
+  --color-text: #1e2021;
+  --color-text-highlight: #fdca90;
+  --color-text-dark-highlight: #b57c3e;
+  --color-button: #1e2021;
+  --color-button-hover: #fff; */
+
+  /* maroon palette */
+
+  /* --color-primary: #842a3b;
+  --color-primary-dark: #662222;
+  --color-primary-accent: #c17181;
+  --color-orange-accent: #fdca90;
+  --color-text: #130606;
+  --color-text-highlight: #c17181;
+  --color-text-dark-highlight: #b57c3e;
+  --color-button: #662222;
+  --color-button-hover: #fff; */
+
+  /* --color-primary: #842a3b; */
+  --color-primary: #f7931e;
+  --color-primary-dark: #160f29;
+  --color-primary-accent: #f9a94e;
+  --color-orange-accent: #fdca90;
+  --color-text: #130606;
+  --color-text-highlight: #c17181;
+  --color-text-dark-highlight: #b57c3e;
+  --color-button: #160f29;
+  --color-button-hover: #fff;
+
+  /* animations */
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-3deg);
+    }
+    50% {
+      transform: rotate(3deg);
+    }
+  }
+
+  /* Slow pulse (scale in/out) */
+
+  --animate-pulse-slow: pulse-slow 4s ease-in-out infinite;
+  @keyframes pulse-slow {
+    0%,
+    100% {
+      transform: scale(1.05);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+}
+
+button {
+  @apply cursor-pointer;
+}
+
+button:hover {
+  @apply bg-primary-dark scale-103;
+}
+
+@layer utilities {
+  /* Float up & down */
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Slow pulse (scale in/out) */
+  @keyframes pulse-slow {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
+
+  /* Gentle rotate left-right */
+  @keyframes sway {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(12deg);
+    }
+    75% {
+      transform: rotate(-2deg);
+    }
+  }
+  .animate-sway {
+    animation: sway 1s ease-in-out infinite;
+  }
+
+  /* Floating + scaling combo */
+  @keyframes float-pulse {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-5px) scale(1.02);
+    }
+  }
+  .animate-float-pulse {
+    animation: float-pulse 4s ease-in-out infinite;
+  }
+
+  /* Gentle wiggle (fun effect for icons) */
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    15% {
+      transform: rotate(3deg);
+    }
+    30% {
+      transform: rotate(-3deg);
+    }
+    45% {
+      transform: rotate(2deg);
+    }
+    60% {
+      transform: rotate(-2deg);
+    }
+    75% {
+      transform: rotate(1deg);
+    }
+  }
+  .animate-wiggle {
+    animation: wiggle 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+.specialBtn {
+  background-color: var(--color-button);
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.specialBtn:hover {
+  color: var(--color-button);
+  background-color: var(--color-text-highlight);
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+/* button {
+  background-color: transparent;
+}
+
+button:hover,
+button:focus,
+button:active {
+  background-color: transparent;
+  box-shadow: none;
+} */

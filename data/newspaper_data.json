@@ -1,0 +1,287 @@
+{
+  "daily0": {
+    "id": "daily0",
+    "name": "Lankadeepa",
+    "type": "daily",
+    "noColPerPage": 6,
+    "colWidth": 4,
+    "colHeight": 20,
+    "minAdHeight": 3,
+    "tintAdditionalCharge": 250,
+    "newspaperimg": "sample76894.png",
+    "typeofAd": {
+      "classified": {
+        "name": "Classified",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 300,
+        "additionalWordPrice": 15,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 65,
+        "categories": [
+          "Real Estate",
+          "Automobile",
+          "Employment",
+          "Trade",
+          "Health & Beauty",
+          "Personal"
+        ],
+        "imgUrl": "",
+        "isUploadImage": false,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "photo_classified": {
+        "name": "Photo Classified",
+        "baseType": "photoClassified",
+        "countFirstWords": 15,
+        "basePrice": 800,
+        "additionalWordPrice": 25,
+        "colorOptions": [
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 120,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "casual": {
+        "name": "Casual",
+        "baseType": "casual",
+        "countFirstWords": 30,
+        "basePrice": 1200,
+        "additionalWordPrice": 30,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "death_notice": {
+        "name": "Death Notice",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 120,
+        "additionalWordPrice": 10,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "Uploading a copy of death certificate is mandatory",
+        "extraNotes2": ""
+      }
+    }
+  },
+  "daily1": {
+    "id": "daily1",
+    "name": "Diwayina",
+    "type": "daily",
+    "noColPerPage": 6,
+    "colWidth": 4,
+    "colHeight": 20,
+    "minAdHeight": 3,
+    "tintAdditionalCharge": 250,
+    "newspaperimg": "sample76894.png",
+    "typeofAd": {
+      "classified": {
+        "name": "Classified",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 300,
+        "additionalWordPrice": 15,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 65,
+        "categories": [
+          "Real Estate",
+          "Automobile",
+          "Employment",
+          "Trade",
+          "Health & Beauty",
+          "Personal"
+        ],
+        "imgUrl": "",
+        "isUploadImage": false,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "photo_classified": {
+        "name": "Photo Classified",
+        "baseType": "photoClassified",
+        "countFirstWords": 15,
+        "basePrice": 800,
+        "additionalWordPrice": 25,
+        "colorOptions": [
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 120,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "casual": {
+        "name": "Casual",
+        "baseType": "casual",
+        "countFirstWords": 30,
+        "basePrice": 1200,
+        "additionalWordPrice": 30,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "death_notice": {
+        "name": "Death Notice",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 120,
+        "additionalWordPrice": 10,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "Uploading a copy of death certificate is mandatory",
+        "extraNotes2": ""
+      }
+    }
+  },
+  "daily2": {
+    "id": "daily2",
+    "name": "Mawubima",
+    "type": "daily",
+    "noColPerPage": 6,
+    "colWidth": 4,
+    "colHeight": 20,
+    "minAdHeight": 3,
+    "tintAdditionalCharge": 250,
+    "newspaperimg": "sample76894.png",
+    "typeofAd": {
+      "classified": {
+        "name": "Classified",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 300,
+        "additionalWordPrice": 15,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 65,
+        "categories": [
+          "Real Estate",
+          "Automobile",
+          "Employment",
+          "Trade",
+          "Health & Beauty",
+          "Personal"
+        ],
+        "imgUrl": "",
+        "isUploadImage": false,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "photo_classified": {
+        "name": "Photo Classified",
+        "baseType": "photoClassified",
+        "countFirstWords": 15,
+        "basePrice": 800,
+        "additionalWordPrice": 25,
+        "colorOptions": [
+          "color"
+        ],
+        "tintColorPrice": 250,
+        "isAllowCombined": false,
+        "maxWords": 120,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "casual": {
+        "name": "Casual",
+        "baseType": "casual",
+        "countFirstWords": 30,
+        "basePrice": 1200,
+        "additionalWordPrice": 30,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "",
+        "extraNotes2": ""
+      },
+      "death_notice": {
+        "name": "Death Notice",
+        "baseType": "classified",
+        "countFirstWords": 15,
+        "basePrice": 120,
+        "additionalWordPrice": 10,
+        "colorOptions": [
+          "blackWhite",
+          "color"
+        ],
+        "tintColorPrice": 300,
+        "isAllowCombined": false,
+        "maxWords": 200,
+        "categories": [],
+        "imgUrl": "",
+        "isUploadImage": true,
+        "extraNotes1": "Uploading a copy of death certificate is mandatory",
+        "extraNotes2": ""
+      }
+    }
+  }
+}

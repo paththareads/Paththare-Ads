@@ -1,0 +1,458 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model account_tokens {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  token_hash String
+  type       String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at DateTime  @db.Timestamptz(6)
+  used_at    DateTime? @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model audit_logs {
+  id         BigInt   @id @default(autoincrement())
+  user_id    String?  @db.Uuid
+  actor_id   String?  @db.Uuid
+  action     String
+  detail     Json?
+  ip         String?  @db.Inet
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model refresh_tokens {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String    @db.Uuid
+  token_hash String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at DateTime  @db.Timestamptz(6)
+  revoked_at DateTime? @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model roles {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?
+  user_roles  user_roles[]
+}
+
+model sessions {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String   @db.Uuid
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  last_active_at DateTime @default(now()) @db.Timestamptz(6)
+  expires_at     DateTime @db.Timestamptz(6)
+  user_agent     String?
+  ip             String?  @db.Inet
+  metadata       Json?
+  users          users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_roles {
+  user_id String @db.Uuid
+  role_id Int
+  roles   roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users   users  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, role_id])
+}
+
+model users {
+  id                     String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                  String           @unique
+  password_hash          String?
+  full_name              String?
+  phone                  String?
+  username               String?          @unique
+  nic_passport_encrypted String?
+  role                   role_enum        @default(USER)
+  is_verified            Boolean          @default(false)
+  is_active              Boolean          @default(true)
+  created_at             DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime         @default(now()) @db.Timestamptz(6)
+  account_tokens         account_tokens[]
+  refresh_tokens         refresh_tokens[]
+  sessions               sessions[]
+  user_roles             user_roles[]
+
+  @@index([phone], map: "idx_users_phone")
+}
+
+model ad_status_history {
+  history_id       Int             @id @default(autoincrement())
+  reference_number String?         @db.Char(16)
+  status           String          @db.VarChar(20)
+  updated_at       DateTime?       @default(now()) @db.Timestamp(6)
+  advertisements   advertisements? @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([reference_number], map: "idx_ad_status_history_reference_number")
+}
+
+model advertisements {
+  ad_id                   Int                       @id @default(autoincrement())
+  reference_number        String                    @unique @db.Char(16)
+  advertiser_id           Int?
+  newspaper_name          String                    @db.VarChar(100)
+  ad_type                 String                    @db.VarChar(50)
+  classified_category     String?                   @db.VarChar(100)
+  subcategory             String?                   @db.VarChar(100)
+  publish_date            DateTime                  @db.Date
+  advertisement_text      String
+  background_color        Boolean?                  @default(false)
+  post_in_web             Boolean?                  @default(false)
+  upload_image            String?
+  special_notes           String?
+  price                   Decimal?                  @db.Decimal(10, 2)
+  status                  String?                   @default("Pending") @db.VarChar(20)
+  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  newspaper_serial_no     Int?
+  uploaded_images         String[]                  @default([])
+  print_url               String?
+  updated_price           Decimal?                  @db.Decimal(10, 2)
+  ad_type_id              Int?
+  tracking_link           String?
+  latest_email_sent       String?
+  emailed_at              DateTime?                 @db.Timestamp(6)
+  ad_price_change_history ad_price_change_history[]
+  ad_review_history       ad_review_history[]
+  ad_status_history       ad_status_history[]
+  advertisers             advertisers?              @relation(fields: [advertiser_id], references: [advertiser_id], onDelete: Cascade, onUpdate: NoAction)
+  newspapers              newspapers?               @relation(fields: [newspaper_serial_no], references: [newspaper_serial_no], map: "fk_ads_newspaper_serial")
+  ad_types                ad_types?                 @relation(fields: [ad_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_advertisements_ad_type")
+  casual_ads              casual_ads?
+  classified_ads          classified_ads[]
+  payment_ads             payment_ads[]
+  tracking_tokens         tracking_tokens[]
+
+  @@index([reference_number], map: "idx_advertisements_reference_number")
+  @@index([status], map: "idx_advertisements_status")
+}
+
+model advertisers {
+  advertiser_id  Int              @id @default(autoincrement())
+  name           String           @db.VarChar(100)
+  nic            String           @db.VarChar(12)
+  phone          String           @db.VarChar(15)
+  email          String           @db.VarChar(100)
+  address        String
+  advertisements advertisements[]
+}
+
+model ad_review_history {
+  id                      Int            @id @default(autoincrement())
+  reference_number        String         @db.Char(16)
+  attempt                 Int            @default(1)
+  advertisement_text      String
+  requested_revision_text String?
+  reviewed_by             String?        @db.VarChar(100)
+  status_now              String         @default("Pending") @db.VarChar(20)
+  created_at              DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?      @default(now()) @db.Timestamp(6)
+  advertisements          advertisements @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, map: "fk_reference")
+
+  @@index([reference_number], map: "idx_ad_review_reference")
+}
+
+model tracking_tokens {
+  id             Int            @id @default(autoincrement())
+  ad_id          Int
+  reference      String         @db.Char(16)
+  email          String         @db.VarChar(100)
+  token_hash     String         @db.VarChar(128)
+  created_at     DateTime?      @default(now()) @db.Timestamp(6)
+  last_used_at   DateTime?      @db.Timestamp(6)
+  expires_at     DateTime       @db.Timestamp(6)
+  revoked        Boolean?       @default(false)
+  advertisements advertisements @relation(fields: [ad_id], references: [ad_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tracking_tokens_ad")
+
+  @@index([reference], map: "idx_tracking_reference")
+  @@index([token_hash], map: "idx_tracking_token_hash")
+}
+
+model payment_ads {
+  id                Int             @id @default(autoincrement())
+  reference_number  String?         @db.Char(16)
+  file_path         String
+  original_filename String?         @db.VarChar(255)
+  amount            Decimal?        @db.Decimal(12, 2)
+  payment_date      DateTime?       @default(now()) @db.Timestamp(6)
+  verified_by       String?
+  status            String?         @default("PAYMENTPENDING") @db.VarChar(20)
+  remarks           String?
+  created_at        DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?       @default(now()) @db.Timestamp(6)
+  advertisements    advertisements? @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model newspapers {
+  id                         String           @id
+  name                       String
+  type                       String
+  no_col_per_page            Int
+  col_width                  Int
+  col_height                 Int
+  min_ad_height              Int
+  tint_additional_charge     Int
+  newspaper_img              String?
+  created_at                 DateTime?        @default(now()) @db.Timestamptz(6)
+  name_sinhala               String?
+  cs_col_bw_price            Int?
+  cs_col_bw_one_color_price  Int?
+  cs_col_bw_two_color_price  Int?
+  cs_col_full_color_price    Int?
+  cs_page_bw_price           Int?
+  cs_page_bw_one_color_price Int?
+  cs_page_bw_two_color_price Int?
+  cs_page_full_color_price   String?
+  newspaper_status           Boolean          @default(true)
+  newspaper_serial_no        Int              @unique @default(autoincrement())
+  is_lang_combine_allowed    Boolean          @default(false)
+  combine_eng_price          Int?             @default(0)
+  combine_tam_price          Int?             @default(0)
+  combine_eng_tam_price      Int?             @default(0)
+  allowed_weekdays           Int[]            @default([])
+  allowed_month_days         Int[]            @default([])
+  language                   String?
+  group_id                   String?
+  combine_sin_price          Int?             @default(0)
+  combine_sin_eng_price      Int?             @default(0)
+  combine_sin_tam_price      Int?             @default(0)
+  publisher_id               Int              @default(1)
+  publisher_email            String?
+  lm_image                   String?
+  lm_description             String?
+  ad_time_limit              Int?
+  day_before                 String?
+  date_before                String?
+  ad_types                   ad_types[]
+  advertisements             advertisements[]
+  publishers                 publishers       @relation(fields: [publisher_id], references: [id], map: "fk_newspapers_publishers")
+}
+
+model ad_type_categories {
+  id         Int      @id @default(autoincrement())
+  ad_type_id Int
+  category   String
+  ad_types   ad_types @relation(fields: [ad_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_category_ad_type")
+
+  @@index([ad_type_id], map: "idx_categories_ad_type")
+}
+
+model ad_type_color_options {
+  id         Int      @id @default(autoincrement())
+  ad_type_id Int
+  color      String
+  ad_types   ad_types @relation(fields: [ad_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_color_ad_type")
+
+  @@index([ad_type_id], map: "idx_color_options_ad_type")
+}
+
+model ad_types {
+  id                         Int                     @id @default(autoincrement())
+  newspaper_id               String
+  key                        String
+  name                       String
+  base_type                  String
+  count_first_words          Int
+  base_price                 Int
+  additional_word_price      Int
+  tint_color_price           Int
+  is_allow_combined          Boolean
+  max_words                  Int
+  img_url                    String?
+  is_upload_image            Boolean
+  extra_notes1               String?
+  extra_notes2               String?
+  priority_price             Int?
+  cs_col_bw_price            Int                     @default(0)
+  cs_col_bw_one_color_price  Int                     @default(0)
+  cs_col_bw_two_color_price  Int                     @default(0)
+  cs_col_full_color_price    Int                     @default(0)
+  cs_page_bw_price           Int                     @default(0)
+  cs_page_bw_one_color_price Int                     @default(0)
+  cs_page_bw_two_color_price Int                     @default(0)
+  cs_page_full_color_price   Int                     @default(0)
+  tax_amount_2               Decimal?                @default(0.00) @db.Decimal(5, 2)
+  co_paper_price             Int                     @default(0)
+  internet_bw_price          Int                     @default(0)
+  internet_fc_price          Int                     @default(0)
+  internet_highlight_price   Int                     @default(0)
+  ad_sections                ad_sections[]
+  ad_type_categories         ad_type_categories[]
+  ad_type_color_options      ad_type_color_options[]
+  newspapers                 newspapers              @relation(fields: [newspaper_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ad_types_newspaper")
+  advertisements             advertisements[]
+
+  @@unique([newspaper_id, key], map: "uq_newspaper_ad_key")
+  @@index([newspaper_id], map: "idx_ad_types_newspaper_id")
+}
+
+model ad_categories {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  nw_ad_type_id      Int?
+  newspaper_ad_types newspaper_ad_types? @relation(fields: [nw_ad_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ad_types_categories")
+  ad_sub_categories  ad_sub_categories[]
+}
+
+model ad_sub_categories {
+  id                    Int           @id @default(autoincrement())
+  category_id           Int
+  name                  String
+  classification_number Int?
+  ad_categories         ad_categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_sub_category_category")
+
+  @@unique([category_id, name], map: "unique_subcategory_per_category")
+}
+
+model casual_ads {
+  id               Int            @id @default(autoincrement())
+  reference_number String         @unique @db.Char(16)
+  ad_size          String
+  no_of_columns    Int
+  ad_height        Int
+  color_option     String         @db.VarChar(20)
+  has_artwork      Boolean
+  need_artwork     Boolean
+  section_id       Int?
+  no_of_boxes      Decimal?       @default(0) @db.Decimal(5, 2)
+  advertisements   advertisements @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, onUpdate: NoAction, map: "fk_casual_ads_advertisement")
+  ad_sections      ad_sections?   @relation(fields: [section_id], references: [id], onDelete: Cascade, map: "fk_section_casual")
+}
+
+model classified_ads {
+  id                 Int            @id @default(autoincrement())
+  reference_number   String         @db.Char(16)
+  is_publish_eng     Boolean        @default(false)
+  is_publish_tam     Boolean        @default(false)
+  is_priority        Boolean?       @default(false)
+  is_publish_sin     Boolean        @default(false)
+  is_publish_sin_eng Boolean        @default(false)
+  is_publish_sin_tam Boolean        @default(false)
+  is_publish_eng_tam Boolean        @default(false)
+  is_co_paper        Boolean        @default(false)
+  is_int_bw          Boolean        @default(false)
+  is_int_fc          Boolean        @default(false)
+  is_int_highlight   Boolean        @default(false)
+  district           String?
+  province           String?
+  vehicle_brand      String?
+  advertisements     advertisements @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, onUpdate: NoAction, map: "fk_classified_ads_advertisement")
+}
+
+model ad_section_sizes {
+  id           Int         @id @default(autoincrement())
+  section_id   Int
+  size_type    String      @db.VarChar(50)
+  width        Decimal?    @default(0) @db.Decimal(6, 2)
+  height       Decimal?    @default(0) @db.Decimal(6, 2)
+  color_option String      @db.VarChar(50)
+  price        Decimal?    @default(0) @db.Decimal(10, 2)
+  is_available Boolean?    @default(true)
+  ad_sections  ad_sections @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_sizes_section")
+}
+
+model ad_sections {
+  id                     Int                      @id @default(autoincrement())
+  ad_type_id             Int
+  name                   String                   @db.VarChar(100)
+  extra_notes            String?
+  is_available           Boolean?                 @default(true)
+  supports_box_ads       Boolean                  @default(false)
+  max_boxes              Int?
+  is_single_column       Boolean?                 @default(false)
+  ad_section_box_pricing ad_section_box_pricing[]
+  ad_section_sizes       ad_section_sizes[]
+  ad_types               ad_types                 @relation(fields: [ad_type_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_ad_sections_ad_type")
+  casual_ads             casual_ads[]
+}
+
+model newspaper_ad_types {
+  id                Int             @id @default(autoincrement())
+  ad_type_name      String
+  ad_type_name_code String?
+  is_available      Boolean?        @default(true)
+  ad_categories     ad_categories[]
+}
+
+model ad_section_box_pricing {
+  id             Int         @id @default(autoincrement())
+  ad_section_id  Int
+  box_number     Int
+  price          Decimal     @db.Decimal(12, 2)
+  extra_note_1   String?
+  extra_note_2   String?
+  box_number_dec Decimal     @default(1) @db.Decimal(5, 2)
+  ad_sections    ad_sections @relation(fields: [ad_section_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model agency {
+  id             Int       @id @default(autoincrement())
+  agent_name     String
+  agent_address  String?
+  agent_tel      String?
+  agent_no       String?
+  papers         String[]  @default([])
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  publisher_name String?
+  ad_text_type   String?
+}
+
+model publishers {
+  id         Int          @id @default(autoincrement())
+  name       String
+  form_link  String?
+  created_at DateTime?    @default(now()) @db.Timestamptz(6)
+  newspapers newspapers[]
+}
+
+model ad_price_change_history {
+  id               Int            @id @default(autoincrement())
+  reference_number String         @db.Char(16)
+  old_price        Decimal?       @db.Decimal(10, 2)
+  requested_price  Decimal        @db.Decimal(10, 2)
+  reason           String
+  requested_by     String?        @db.VarChar(100)
+  status           String         @default("Pending") @db.VarChar(20)
+  created_at       DateTime       @default(now()) @db.Timestamp(6)
+  advertisements   advertisements @relation(fields: [reference_number], references: [reference_number], onDelete: Cascade, onUpdate: NoAction, map: "fk_ad_price_change_reference")
+
+  @@index([reference_number], map: "idx_ad_price_change_reference")
+}
+
+model promo_ads {
+  id             Int      @id @default(autoincrement())
+  ad_name        String?  @db.VarChar(255)
+  ad_image       String?
+  ad_description String?
+  extra_notes_1  String?
+  is_active      Boolean? @default(true)
+  is_clickable   Boolean? @default(false)
+  ad_public_id   Int?
+  ad_public_id_2 String?
+}
+
+model admin_config {
+  id         Int       @id @default(autoincrement())
+  phone      String    @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+enum role_enum {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+  PREMIUM
+  USER
+}
