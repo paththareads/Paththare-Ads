@@ -104,7 +104,8 @@ export async function POST(req: Request) {
     }
 
     const rawToken = crypto.randomBytes(24).toString("hex");
-    const trackingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/ads/track/${referenceNumber}?t=${rawToken}`;
+    // const trackingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/ads/track/${referenceNumber}?t=${rawToken}`;
+    const trackingLink = `/ads/track/${referenceNumber}?t=${rawToken}`;
     const cleanedLink = trackingLink.replace(/^(https?:\/\/)?[^/]+\/?/, "");
 
     // ✅ Step 3: Create advertisement entry
