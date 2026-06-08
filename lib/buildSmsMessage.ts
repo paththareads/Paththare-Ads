@@ -12,7 +12,7 @@ export function buildAdSubmitSMS({
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
 
   // const fullTrackingLink = trackingLink ? `${baseUrl}${trackingLink}` : baseUrl;
-  const fullTrackingLink = trackingLink;
+  const fullTrackingLink = baseUrl + trackingLink;
 
   console.log("building : ", status);
 
