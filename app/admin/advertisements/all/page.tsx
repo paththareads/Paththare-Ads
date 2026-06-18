@@ -46,6 +46,7 @@ interface Advertisement {
   updated_price?: number | null;
   status: string;
   print_url: string;
+  is_read: boolean;
 
   casual_ad?: {
     ad_size: string;
@@ -248,15 +249,30 @@ export default function AdminAdvertisements() {
 
   // Fetch ads
   useEffect(() => {
-    const fetchAds = async () => {
-      setLoading(true);
-      const res = await fetch("/api/ads");
-      const data = await res.json();
-      setAds(data);
-      setFilteredAds(data);
-      setLoading(false);
+    const fetchAds = async (showLoader = false) => {
+      try {
+        if (showLoader) setLoading(true);
+
+        const res = await fetch("/api/ads");
+        const data = await res.json();
+
+        setAds(data);
+        setFilteredAds(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (showLoader) setLoading(false);
+      }
     };
-    fetchAds();
+
+    // Show loader only on first load
+    fetchAds(true);
+
+    const interval = setInterval(() => {
+      fetchAds(false);
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Filtering + sorting
@@ -470,10 +486,11 @@ export default function AdminAdvertisements() {
   };
 
   const handlePrintRequest = (extraData?: AttachmentData) => {
+    console.log(editableAd);
     if (!editableAd) return;
 
     // Check if PDF already exists
-    if (editableAd.print_url !== "") {
+    if (editableAd.print_url) {
       setPendingAttachments(extraData);
       setShowReprintPrompt(true);
       return;
@@ -996,22 +1013,96 @@ export default function AdminAdvertisements() {
               </tr>
             </thead>
             <tbody>
+              {loading &&
+                Array.from({ length: 5 }).map((_, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-4 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-28 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-40 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-28 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-32 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-24 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-4 w-24 rounded"></div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="skeleton h-8 w-24 rounded-full"></div>
+                    </td>
+                  </tr>
+                ))}
               {!loading &&
                 paginatedAds.map((ad) => (
                   <tr
                     key={ad.reference_number}
-                    onClick={(e) => {
-                      // console.log("all info here", ad);
+                    onClick={async (e) => {
                       // Prevent row click from interfering with checkbox
                       if ((e.target as HTMLElement).closest("input")) return;
-                      openModal(ad);
+
+                      try {
+                        if (!ad.is_read) {
+                          await fetch(`/api/ads/${ad.reference_number}`, {
+                            method: "PATCH",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                              is_read: true,
+                            }),
+                          });
+
+                          // Update local state immediately so UI changes without refresh
+                          setAds((prev) =>
+                            prev.map((item) =>
+                              item.reference_number === ad.reference_number
+                                ? { ...item, is_read: true }
+                                : item,
+                            ),
+                          );
+
+                          setFilteredAds((prev) =>
+                            prev.map((item) =>
+                              item.reference_number === ad.reference_number
+                                ? { ...item, is_read: true }
+                                : item,
+                            ),
+                          );
+                        }
+
+                        openModal(ad);
+                      } catch (err) {
+                        console.error("Failed to mark ad as read", err);
+                        openModal(ad);
+                      }
                     }}
-                    className={`border-b cursor-pointer hover:bg-blue-50 ${
+                    className={`cursor-pointer hover:bg-blue-50 ${
                       selectedAds.some(
                         (a) => a.reference_number === ad.reference_number,
                       )
                         ? "bg-blue-100"
                         : ""
+                    }  ${
+                      !ad.is_read
+                        ? "text-[var(--color-primary-dark)]"
+                        : "text-gray-800"
                     }`}
                   >
                     <td className="px-4 py-2">
@@ -1034,19 +1125,52 @@ export default function AdminAdvertisements() {
                       )}
                     </td>
 
-                    <td className="px-4 py-2 font-mono">
+                    <td
+                      className={`px-4 py-2 font-mono ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
                       {ad.reference_number}
                     </td>
-                    <td className="px-4 py-2 font-mono">
+                    <td
+                      className={`px-4 py-2 font-mono ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
                       {ad.advertiser_name}
                     </td>
-                    <td className="px-4 py-2 font-mono">
+
+                    <td
+                      className={`px-4 py-2 font-mono ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
                       {ad.advertiser_phone}
                     </td>
-                    <td className="px-4 py-2">{ad.newspaper_name}</td>
+
+                    <td
+                      className={`px-4 py-2 ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
+                      {ad.newspaper_name}
+                    </td>
+
                     {/* <td className="px-4 py-2">{ad.advertiser_id}</td> */}
-                    <td className="px-4 py-2">{ad.ad_type}</td>
-                    <td className="px-4 py-2">
+
+                    <td
+                      className={`px-4 py-2 ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
+                      {ad.ad_type}
+                    </td>
+
+                    <td
+                      className={`px-4 py-2 ${
+                        !ad.is_read ? "font-bold" : "font-normal"
+                      }`}
+                    >
                       {new Date(ad.created_at).toLocaleDateString()}
                     </td>
                     <td
@@ -1058,13 +1182,6 @@ export default function AdminAdvertisements() {
                     </td>
                   </tr>
                 ))}
-              {loading && (
-                <tr>
-                  <td colSpan={6} className="text-center py-6 text-gray-500">
-                    Loading...
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -1454,6 +1571,7 @@ export default function AdminAdvertisements() {
                               "PaymentPending",
                               "PaymentDone",
                               "AdProcessed",
+                              "Submitted",
                             ].includes(selectedAd.status || "")}
                             className={`w-full h-56 rounded-xl border p-4 text-gray-800 resize-none focus:ring-2 focus:ring-[var(--color-primary)] outline-none ${
                               [
@@ -1464,6 +1582,7 @@ export default function AdminAdvertisements() {
                                 "PaymentPending",
                                 "PaymentDone",
                                 "AdProcessed",
+                                "Submitted",
                               ].includes(selectedAd.status || "")
                                 ? "bg-gray-100 cursor-not-allowed"
                                 : ""
@@ -1637,6 +1756,22 @@ export default function AdminAdvertisements() {
                       </button>
                     )}
 
+                  {[
+                    "Pending",
+                    "Revision",
+                    "Resubmitted",
+                    "UpdateImage",
+                  ].includes(selectedAd.status) &&
+                    (isTextChanged || requestImageChange || newPrice) && (
+                      <button
+                        onClick={() => updateStatus("Approved")}
+                        className={`${ACTION_BTN_CLASS} bg-green-600 text-white hover:bg-green-700`}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Force Approve
+                      </button>
+                    )}
+
                   {["Pending", "Resubmitted", "UpdateImage"].includes(
                     selectedAd.status,
                   ) &&
@@ -1652,12 +1787,9 @@ export default function AdminAdvertisements() {
                       </button>
                     )}
 
-                  {[
-                    "PaymentDone",
-                    "Print",
-                    "AdProcessed",
-                    "Submitted",
-                  ].includes(selectedAd.status) && (
+                  {["Print", "AdProcessed", "Submitted"].includes(
+                    selectedAd.status,
+                  ) && (
                     <div className="flex flex-col justify-center">
                       <button
                         onClick={() => setshowPDFViewPrompt(true)}

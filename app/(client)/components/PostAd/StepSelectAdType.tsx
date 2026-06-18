@@ -7,6 +7,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import AdGridCanvas from "../AdGridCanvas";
 import { ChevronUp } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 interface StepSelectAdTypeProps {
   formData: any;
@@ -170,6 +176,7 @@ export default function StepSelectAdType({
   const [selectedDistrict, setselectedDistrict] = useState<string>("");
   const [selectedProvince, setselectedProvince] = useState<string>("");
   const [showScrollMessage, setShowScrollMessage] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
 
   const [noOfColumnsPerPage, setNoOfColumnsPerPage] = useState<number>(
     formData.selectedNewspaper.no_col_per_page,
@@ -205,7 +212,7 @@ export default function StepSelectAdType({
     }
   }, [selectedMainAdType]);
 
-  const MAX_FILES = 8;
+  const MAX_FILES = 4;
   const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 
   // JS: Sunday=0 → ISO: Sunday=7
@@ -234,6 +241,14 @@ export default function StepSelectAdType({
 
   // if current time passed cutoff → add 1 extra day
   const extraDay = now.getHours() >= ad_time_limit ? 1 : 0;
+
+  const images =
+    formData.selectedNewspaper?.lm_images?.length > 0
+      ? formData.selectedNewspaper.lm_images
+      : formData.selectedNewspaper?.lm_image
+        ? [formData.selectedNewspaper.lm_image]
+        : [];
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // final minDate
   const minDate = new Date(
@@ -1260,7 +1275,6 @@ export default function StepSelectAdType({
                   className="border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-primary-accent"
                 >
                   <option value="">Select Province</option>
-
                   <option value="central">Central</option>
                   <option value="eastern">Eastern</option>
                   <option value="north_central">North Central</option>
@@ -1346,10 +1360,10 @@ export default function StepSelectAdType({
                   </span>{" "}
                   <span className="text-red-500">*</span>
                 </label>
-
+                {/* // supportive doc input other than casual  */}
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="application/pdf"
                   multiple
                   onChange={async (e) => {
                     const files = Array.from(e.target.files ?? []);
@@ -1360,18 +1374,30 @@ export default function StepSelectAdType({
                       MAX_FILES - (formData.uploadedImages?.length ?? 0);
 
                     if (remainingSlots <= 0) {
-                      alert("You can upload a maximum of 8 images.");
+                      setAlertMessage("You can upload a maximum of 4 images.");
                       return;
                     }
 
                     const selectedFiles = files.slice(0, remainingSlots);
+
+                    for (const file of selectedFiles) {
+                      const isPdf =
+                        file.type === "application/pdf" ||
+                        file.name.toLowerCase().endsWith(".pdf");
+
+                      if (!isPdf) {
+                        setAlertMessage(`${file.name} is not a PDF file.`);
+                        e.target.value = "";
+                        return;
+                      }
+                    }
 
                     // Size validation
                     const oversized = selectedFiles.find(
                       (file) => file.size > MAX_SIZE,
                     );
                     if (oversized) {
-                      alert("Each image must be under 3 MB.");
+                      setAlertMessage("Each image must be under 3 MB");
                       return;
                     }
 
@@ -1411,15 +1437,34 @@ export default function StepSelectAdType({
                   </p>
                 )}
                 {formData.uploadedImages?.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-8 gap-4">
                     {formData.uploadedImages.map(
                       (url: string, index: number) => (
                         <div key={url} className="relative group">
-                          <img
+                          {/* <img
                             src={url}
                             alt={`Uploaded ${index + 1}`}
                             className="w-full h-32 object-cover rounded-lg border"
-                          />
+                          /> */}
+                          <div className="flex flex-column">
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block p-4 my-4 text-center shadow-2xs"
+                              style={{
+                                backgroundImage:
+                                  "url('/uploaded-png-back-3.png')",
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                backgroundRepeat: "no-repeat",
+                              }}
+                            >
+                              <span className="text-white">
+                                Uploaded File {index + 1}
+                              </span>
+                            </a>
+                          </div>
 
                           {/* Remove button */}
                           <button
@@ -1441,7 +1486,8 @@ export default function StepSelectAdType({
                 )}
 
                 <p className="text-sm text-gray-500 mt-2">
-                  {formData.uploadedImages.length} / 8 images uploaded
+                  {formData.uploadedImages.length} / 4 images uploaded. Please
+                  note that images must be PDF format.
                 </p>
 
                 {selectedAdType.extra_notes1 && (
@@ -2180,7 +2226,7 @@ export default function StepSelectAdType({
                       <>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="application/pdf"
                           multiple
                           onChange={async (e) => {
                             const files = Array.from(e.target.files ?? []);
@@ -2192,7 +2238,7 @@ export default function StepSelectAdType({
                               (formData.uploadedImages?.length ?? 0);
 
                             if (remainingSlots <= 0) {
-                              alert("You can upload a maximum of 8 images.");
+                              alert("You can upload a maximum of 4 images.");
                               return;
                             }
 
@@ -2305,7 +2351,7 @@ export default function StepSelectAdType({
 
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="application/pdf"
                       multiple
                       onChange={async (e) => {
                         const files = Array.from(e.target.files ?? []);
@@ -2316,7 +2362,7 @@ export default function StepSelectAdType({
                           MAX_FILES - (formData.uploadedImages?.length ?? 0);
 
                         if (remainingSlots <= 0) {
-                          alert("You can upload a maximum of 8 images.");
+                          alert("You can upload a maximum of 4 images.");
                           return;
                         }
 
@@ -3021,9 +3067,40 @@ export default function StepSelectAdType({
         </div>
       )}
 
+      {alertMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-xl bg-[var(--color-primary-dark)] p-6 w-80 text-white shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Notice</h2>
+
+            <p className="mb-6 text-sm">{alertMessage}</p>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setAlertMessage(null)}
+                className="rounded-full bg-[var(--color-orange-accent)] px-4 py-1.5 text-sm font-medium text-[var(--color-primary-dark)] transition hover:brightness-110"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden border border-[var(--color-primary-dark)] animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 min-w-[300px]">
+          <div
+            className="relative
+              w-full
+              md:min-w-[768px]
+              max-w-2xl
+              bg-white
+              rounded-xl
+              shadow-2xl
+              overflow-hidden
+              border
+              border-[var(--color-primary-dark)]
+              animate-fadeIn"
+          >
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
@@ -3072,7 +3149,7 @@ export default function StepSelectAdType({
                 </div>
               )}
 
-              {/* Dynamic Image */}
+              {/* Dynamic Image
               {formData.selectedNewspaper?.lm_image && (
                 <div className="flex justify-center">
                   <img
@@ -3081,6 +3158,62 @@ export default function StepSelectAdType({
                     className="max-w-full h-auto rounded-lg border border-[var(--color-primary-accent)] shadow-sm"
                   />
                 </div>
+              )} */}
+
+              {/* {images.length > 0 && (
+                <div className="w-full">
+                  <Swiper
+                    modules={[Navigation, Pagination]}
+                    navigation
+                    pagination={{ clickable: true }}
+                    onSlideChange={(swiper) =>
+                      setActiveIndex(swiper.activeIndex)
+                    }
+                  >
+                    {images.map((imageUrl: string, index: number) => (
+                      <SwiperSlide key={index}>
+                        <div className="mt-3 flex justify-center gap-2">
+                          {images.map((url: string, index: number) => (
+                            <img
+                              key={index}
+                              src={url}
+                              alt={`Thumbnail ${index + 1}`}
+                              className={`h-16 w-16 cursor-pointer rounded border object-cover ${
+                                activeIndex === index
+                                  ? "border-[var(--color-primary-accent)]"
+                                  : "border-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              )} */}
+
+              {images.length > 0 && (
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  navigation
+                  pagination={{ clickable: true }}
+                  // autoplay={{
+                  //   delay: 10000,
+                  //   disableOnInteraction: false,
+                  // }}
+                  slidesPerView={1}
+                  spaceBetween={10}
+                >
+                  {images.map((imageUrl: string, index: number) => (
+                    <SwiperSlide key={index}>
+                      <img
+                        src={imageUrl}
+                        alt={`Learn More ${index + 1}`}
+                        className="mx-auto max-h-[500px] rounded-lg border border-[var(--color-primary-accent)] shadow-sm"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               )}
             </div>
           </div>

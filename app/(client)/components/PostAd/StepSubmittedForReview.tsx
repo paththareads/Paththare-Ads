@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, Download } from "lucide-react";
+import jsPDF from "jspdf";
 
 interface StepSubmittedForReviewProps {
   formData: any;
@@ -25,6 +27,279 @@ export default function StepSubmittedForReview({
   console.log(trackingLink);
 
   const [expanded, setExpanded] = useState(false);
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    let y = 18;
+
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+
+    const addFooter = (pageNumber: number, totalPages: number) => {
+      doc.setDrawColor(220);
+      doc.line(15, pageHeight - 18, pageWidth - 15, pageHeight - 18);
+
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+
+      doc.text(
+        "PaththareAds by Hastec Solutions (Pvt) Ltd",
+        15,
+        pageHeight - 12,
+      );
+
+      doc.text("No. XX, Your Address, Colombo, Sri Lanka", 15, pageHeight - 8);
+
+      doc.text(
+        "Tel: +94 XX XXX XXXX | www.paththareads.lk",
+        15,
+        pageHeight - 4,
+      );
+
+      doc.text(
+        `Page ${pageNumber} of ${totalPages}`,
+        pageWidth - 35,
+        pageHeight - 4,
+      );
+
+      doc.setTextColor(0);
+    };
+
+    const addSection = (title: string) => {
+      y += 3;
+
+      doc.setFillColor(245, 245, 245);
+      doc.rect(15, y - 4, 180, 7, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(title, 18, y + 1);
+
+      y += 8;
+    };
+
+    const addPair = (
+      label1: string,
+      value1: any,
+      label2?: string,
+      value2?: any,
+    ) => {
+      doc.setFontSize(9);
+
+      doc.setFont("helvetica", "bold");
+      doc.text(label1, 15, y);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(String(value1 ?? "-"), 50, y);
+
+      if (label2) {
+        doc.setFont("helvetica", "bold");
+        doc.text(label2, 110, y);
+
+        doc.setFont("helvetica", "normal");
+        doc.text(String(value2 ?? "-"), 145, y);
+      }
+
+      y += 6;
+    };
+
+    const addParagraph = (title: string, value: any) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text(title, 15, y);
+
+      y += 4;
+
+      doc.setFont("helvetica", "normal");
+
+      const lines = doc.splitTextToSize(String(value ?? "-"), 170);
+
+      doc.text(lines, 15, y);
+
+      y += lines.length * 4 + 5;
+    };
+
+    // HEADER
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("Advertisement Summary", 15, y);
+
+    y += 10;
+
+    doc.setFontSize(10);
+
+    addPair("Reference No", referenceNumber, "Status", "Pending");
+
+    // BASIC INFORMATION
+
+    addSection("Basic Information");
+
+    addPair(
+      "Newspaper",
+      formData?.selectedNewspaper?.name,
+      "Ad Type",
+      formData?.adType,
+    );
+
+    addPair(
+      "Publish Date",
+      formData?.publishDate,
+      "District",
+      formData?.district,
+    );
+
+    addPair("Province", formData?.province);
+
+    // ADVERTISEMENT DETAILS
+
+    addSection("Advertisement Details");
+
+    addPair(
+      "Background Color",
+      String(formData?.backgroundColor),
+      "Combined Ad",
+      String(formData?.combinedAd),
+    );
+
+    addPair("Priority Price", String(formData?.priorityPrice));
+
+    addParagraph("Advertisement Text", formData?.adText);
+
+    addParagraph("Special Notes", formData?.specialNotes);
+
+    // ARTWORK
+
+    addSection("Artwork Options");
+
+    addPair(
+      "Has Own Artwork",
+      String(formData?.hasOwnArtwork),
+      "Need Artwork",
+      String(formData?.needArtwork),
+    );
+
+    // LANGUAGE
+
+    addSection("Language Selection");
+
+    // addPair("Combine Selected", String(formData?.userLangCombineSelected));
+
+    if (formData.userLangCombineSelected) {
+      addPair(
+        "Tamil",
+        String(formData?.userLangCombineSelected_Tam),
+        "English",
+        String(formData?.userLangCombineSelected_Eng),
+      );
+
+      addPair(
+        "Sinhala",
+        String(formData?.userLangCombineSelected_Sin),
+        "Sin + Eng",
+        String(formData?.userLangCombineSelected_Sin_Eng),
+      );
+
+      addPair(
+        "Sin + Tam",
+        String(formData?.userLangCombineSelected_Sin_Tam),
+        "Eng + Tam",
+        String(formData?.userLangCombineSelected_Eng_Tam),
+      );
+    }
+
+    // PRINT & LAYOUT
+
+    addSection("Print & Layout");
+
+    addPair(
+      "CO Paper",
+      String(formData?.userCOPaper),
+      "B/W",
+      String(formData?.userIntBW),
+    );
+
+    addPair(
+      "Full Color",
+      String(formData?.userIntFC),
+      "Highlight",
+      String(formData?.userIntHighlight),
+    );
+
+    if (formData.adType === "casual") {
+      addPair(
+        "Columns",
+        formData?.noOfColumns,
+        "Ad Height",
+        formData?.adHeight,
+      );
+
+      addPair(
+        "Color Option",
+        formData?.colorOption,
+        "Ad Size Type",
+        formData?.adSizeType,
+      );
+
+      addPair("Box Type", formData?.boxType);
+    }
+
+    // VEHICLE
+
+    if (formData.classifiedCategory === "Automobile") {
+      addSection("Vehicle Information");
+
+      addPair(
+        "Brand",
+        formData?.vehicle_brand,
+        "Vehicle Type",
+        formData?.vehicleType,
+      );
+
+      addPair("Year", formData?.vehicleYear);
+    }
+
+    // ADVERTISER
+
+    addSection("Advertiser Details");
+
+    addPair(
+      "Name",
+      formData?.advertiserName,
+      "Phone",
+      formData?.advertiserPhone,
+    );
+
+    addPair("NIC", formData?.advertiserNIC, "Email", formData?.advertiserEmail);
+
+    addParagraph("Address", formData?.advertiserAddress);
+
+    addParagraph("Postal Address", formData?.advertiserPostalAddress);
+
+    // TRACKING
+
+    addSection("Track Advertisement");
+
+    doc.setTextColor(0, 102, 204);
+
+    doc.textWithLink("Click Here To Track Your Advertisement", 15, y, {
+      url: `https://www.paththareads.lk${cleanedLink}`,
+    });
+
+    doc.setTextColor(0);
+
+    // FOOTERS
+
+    const totalPages = doc.getNumberOfPages();
+
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addFooter(i, totalPages);
+    }
+
+    doc.save(`Advertisement_PaththareAds_RefNo-${referenceNumber}.pdf`);
+  };
 
   const Section = ({
     title,
@@ -68,16 +343,30 @@ export default function StepSubmittedForReview({
             Advertisement Summary
           </h2>
         </div>
-        <div className="flex justify-end items-center mb-3">
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-sm font-medium px-3 py-1 rounded-md transition text-primary"
-            // style={{
-            //   backgroundColor: "var(--color-primary-accent)",
-            //   color: "white",
-            // }}
+            className="inline-flex items-center text-center justify-center min-w-[200px] gap-2 rounded-lg border border-[var(--color-primary-dark)] px-4 py-2 text-sm font-medium text-black shadow-md transition-all hover:scale-105 hover:shadow-lg"
           >
-            {expanded ? "View Less" : "View All"}
+            {expanded ? (
+              <>
+                <ChevronUp size={16} />
+                View Less
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} />
+                View Full Summary
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={downloadPDF}
+            className="inline-flex items-center text-center justify-center min-w-[200px] gap-2 rounded-lg bg-[var(--color-orange-accent)] px-4 py-2 text-sm font-medium text-[var(--color-primary-dark)] shadow-md transition-all hover:scale-105 hover:shadow-lg"
+          >
+            <Download size={16} />
+            Download PDF
           </button>
         </div>
 

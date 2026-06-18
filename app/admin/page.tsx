@@ -120,18 +120,80 @@ export default function AdminDashboard() {
         <h2 className="text-2xl font-bold mt-8">Insights</h2>
 
         {loading ? (
-          <div className="text-gray-400">
-            <h1>Loading charts...</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+            {/* Chart 1 */}
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80">
+              <div className="h-5 w-40 bg-gray-200 rounded mx-auto mb-6"></div>
+
+              <div className="h-full flex items-end justify-between px-4 pb-8">
+                {[...Array(7)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-gray-200 rounded-t w-6"
+                    style={{
+                      height: `${40 + Math.random() * 120}px`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Chart 2 */}
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80">
+              <div className="h-5 w-40 bg-gray-200 rounded mx-auto mb-6"></div>
+
+              <div className="h-full flex items-end justify-between px-4 pb-8">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-gray-200 rounded-t w-8"
+                    style={{
+                      height: `${50 + Math.random() * 100}px`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Revenue Chart */}
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80 md:col-span-2">
+              <div className="h-5 w-48 bg-gray-200 rounded mx-auto mb-6"></div>
+
+              <div className="relative h-full px-6">
+                <div className="absolute inset-x-6 top-8 h-px bg-gray-100"></div>
+                <div className="absolute inset-x-6 top-20 h-px bg-gray-100"></div>
+                <div className="absolute inset-x-6 top-32 h-px bg-gray-100"></div>
+                <div className="absolute inset-x-6 top-44 h-px bg-gray-100"></div>
+
+                <svg
+                  className="w-full h-[180px]"
+                  viewBox="0 0 600 180"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0,150 C100,80 200,120 300,60 C400,20 500,90 600,40"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Ads Over Time */}
-            <div className="bg-white p-4 rounded-2xl shadow h-80">
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80">
               <h3 className="font-semibold mb-2 text-center">Ads Over Time</h3>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={adsOverTime}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={2}
+                  />
                   <YAxis />
                   <Tooltip />
                   <Line type="monotone" dataKey="count" />
@@ -140,12 +202,17 @@ export default function AdminDashboard() {
             </div>
 
             {/* Top Newspapers */}
-            <div className="bg-white p-4 rounded-2xl shadow h-80">
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80">
               <h3 className="font-semibold mb-2 text-center">Top Newspapers</h3>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={newspapersData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  {/* TODO - change the text size of x axis */}
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={2}
+                  />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="count">
@@ -161,14 +228,18 @@ export default function AdminDashboard() {
             </div>
 
             {/* Revenue Over Time */}
-            <div className="bg-white p-4 rounded-2xl shadow h-80 col-span-2">
+            <div className="bg-white p-4 py-8 rounded-2xl shadow h-80 col-span-2">
               <h3 className="font-semibold mb-2 text-center">
                 Revenue Over Time
               </h3>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={revenueOverTime}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12 }}
+                    minTickGap={2}
+                  />
                   <YAxis />
                   <Tooltip />
                   <Line type="monotone" dataKey="revenue" />

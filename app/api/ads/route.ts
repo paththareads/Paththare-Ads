@@ -32,6 +32,7 @@ export async function GET() {
       price: true,
       status: true,
       print_url: true,
+      is_read: true,
 
       advertisers: {
         select: {
@@ -138,6 +139,7 @@ export async function GET() {
     price: ad.price,
     status: ad.status,
     print_url: ad.print_url,
+    is_read: ad.is_read,
 
     advertiser_name: ad.advertisers?.name ?? "—",
     advertiser_nic: ad.advertisers?.nic ?? "—",

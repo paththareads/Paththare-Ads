@@ -2,6 +2,7 @@
 import "./globals.css";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { AlertProvider } from "../contexts/AlertContext";
 
 export const metadata = {
   title: "PaththareAds Admin Panel",
@@ -22,7 +23,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AlertProvider>{children}</AlertProvider>
+      </body>
     </html>
   );
 }

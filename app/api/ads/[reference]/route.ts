@@ -22,25 +22,25 @@ export function PATCH(
       }
 
       const body = await req.json();
-      const { print_url } = body;
+      const { print_url, is_read } = body;
 
-      if (!print_url) {
-        return resolve(
-          NextResponse.json(
-            { error: "print_url is required" },
-            { status: 400 },
-          ),
-        );
+      const updateData: any = {
+        updated_at: new Date(),
+      };
+
+      if (print_url !== undefined) {
+        updateData.print_url = print_url;
+      }
+
+      if (is_read !== undefined) {
+        updateData.is_read = is_read;
       }
 
       const updated = await prisma.advertisements.update({
         where: {
           reference_number: reference,
         },
-        data: {
-          print_url,
-          updated_at: new Date(),
-        },
+        data: updateData,
       });
 
       return resolve(

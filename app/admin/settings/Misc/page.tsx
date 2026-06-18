@@ -103,7 +103,7 @@ export default function AdminInfo() {
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className="px-5 py-2 rounded-lg bg-[var(--color-primary-accent)] text-white text-sm disabled:opacity-50"
+                className="px-5 py-2 rounded-lg bg-[var(--color-primary-dark)] text-white text-sm disabled:opacity-50"
               >
                 {loading ? "Saving..." : "Save Changes"}
               </button>

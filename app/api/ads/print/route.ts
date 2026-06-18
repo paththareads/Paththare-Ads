@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { createCanvas, registerFont } from "canvas";
 
 const SINHALA_REGEX = /[\u0D80-\u0DFF]/;
+const TAMIL_REGEX = /[\u0B80-\u0BFF]/;
 const MAX_WORDS = 70;
 const CROSS_SIZE = 6;
 const CROSS_SIZE_SMALL = 4;
@@ -26,6 +27,13 @@ registerFont(
   path.join(process.cwd(), "public/fonts/NotoSansSinhala-Regular.ttf"),
   {
     family: "NotoSansSinhala",
+  },
+);
+
+registerFont(
+  path.join(process.cwd(), "public/fonts/NotoSansTamil-Regular.ttf"),
+  {
+    family: "NotoSansTamil",
   },
 );
 
@@ -214,6 +222,10 @@ const renderSinhalaTextToImageLine = (text: string, fontSize = 20): Buffer => {
 
   ctx.fillStyle = "black";
   ctx.font = `${fontSize}px "NotoSansSinhala"`;
+  if (TAMIL_REGEX.test(text)) {
+    console.log("IT IS TAMILLLLL");
+    ctx.font = `${fontSize}px "NotoSansTamil"`;
+  }
 
   const words = text.split(/\s+/);
   let line = "";
@@ -344,7 +356,7 @@ const getCoordinates = (publisherName: string) => {
       return {
         COLUMN_X: [24, 137, 252, 362, 474],
         ROW_Y: [
-          539, 516, 492, 471, 450, 428, 405, 383, 360, 339, 316, 294, 272, 250,
+          543, 520, 496, 475, 454, 432, 409, 387, 364, 343, 320, 298, 276, 254,
         ],
       };
     case "associated_newspapers":
@@ -360,6 +372,14 @@ const getCoordinates = (publisherName: string) => {
         ],
       };
     case "ceylon_newspapers":
+      return {
+        COLUMN_X: [35, 137, 252, 362, 474],
+        ROW_Y: [
+          578, 557, 533, 512, 491, 471, 451, 431, 411, 391, 371, 351, 331, 311,
+          291,
+        ],
+      };
+    case "express_newspapers":
       return {
         COLUMN_X: [35, 137, 252, 362, 474],
         ROW_Y: [
@@ -391,12 +411,17 @@ const shortenNewspaperName = (name: string, maxLength = 14) => {
 };
 
 // Render Sinhala text to PNG
-const renderSinhalaTextToImage = (text: string, fontSize = 20): Buffer => {
+const renderSinhalaTextToImage = (text: string, fontSize = 30): Buffer => {
+  console.log("IT IS TAMILLLLL");
   const canvas = createCanvas(800, 200);
   const ctx = canvas.getContext("2d");
 
   ctx.fillStyle = "black";
   ctx.font = `${fontSize}px "NotoSansSinhala"`;
+  if (TAMIL_REGEX.test(text)) {
+    console.log("IT IS TAMILLLLL");
+    ctx.font = `${fontSize}px "NotoSansTamil"`;
+  }
 
   const words = text.split(/\s+/);
   let line = "";
@@ -582,6 +607,15 @@ export async function POST(req: Request) {
           thickness: 1,
         });
 
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 775,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
+
         if (classified_ad?.is_publish_eng) {
           page.drawLine({
             start: { x: 487 - CROSS_SIZE, y: 693 - CROSS_SIZE },
@@ -593,6 +627,15 @@ export async function POST(req: Request) {
             start: { x: 487 - CROSS_SIZE, y: 693 + CROSS_SIZE },
             end: { x: 487 + CROSS_SIZE, y: 693 - CROSS_SIZE },
             thickness: 1,
+          });
+
+          page.drawText(String(publish_date ?? ""), {
+            x: 500,
+            y: 694,
+            size: 10,
+            font: SINHALA_REGEX.test(String(publish_date))
+              ? sinhalaFont
+              : englishFont,
           });
         }
       }
@@ -609,6 +652,15 @@ export async function POST(req: Request) {
           end: { x: 487 + CROSS_SIZE, y: 757 - CROSS_SIZE },
           thickness: 1,
         });
+
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 759,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
       }
 
       if (newspaper_id === "SUNDAY_TIMES") {
@@ -624,6 +676,15 @@ export async function POST(req: Request) {
           thickness: 1,
         });
 
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 694,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
+
         if (classified_ad?.is_publish_sin) {
           page.drawLine({
             start: { x: 487 - CROSS_SIZE, y: 776 - CROSS_SIZE },
@@ -635,6 +696,15 @@ export async function POST(req: Request) {
             start: { x: 487 - CROSS_SIZE, y: 776 + CROSS_SIZE },
             end: { x: 487 + CROSS_SIZE, y: 776 - CROSS_SIZE },
             thickness: 1,
+          });
+
+          page.drawText(String(publish_date ?? ""), {
+            x: 500,
+            y: 775,
+            size: 10,
+            font: SINHALA_REGEX.test(String(publish_date))
+              ? sinhalaFont
+              : englishFont,
           });
         }
       }
@@ -651,6 +721,15 @@ export async function POST(req: Request) {
           end: { x: 487 + CROSS_SIZE, y: 733 - CROSS_SIZE },
           thickness: 1,
         });
+
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 732,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
       }
 
       if (newspaper_id === "WIJEYA") {
@@ -664,6 +743,61 @@ export async function POST(req: Request) {
           start: { x: 487 - CROSS_SIZE, y: 718 + CROSS_SIZE },
           end: { x: 487 + CROSS_SIZE, y: 718 - CROSS_SIZE },
           thickness: 1,
+        });
+
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 719,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
+      }
+
+      if (newspaper_id === "DAILY_MIRROR") {
+        page.drawLine({
+          start: { x: 487 - CROSS_SIZE, y: 666 - CROSS_SIZE },
+          end: { x: 487 + CROSS_SIZE, y: 666 + CROSS_SIZE },
+          thickness: 1,
+        });
+
+        page.drawLine({
+          start: { x: 487 - CROSS_SIZE, y: 666 + CROSS_SIZE },
+          end: { x: 487 + CROSS_SIZE, y: 666 - CROSS_SIZE },
+          thickness: 1,
+        });
+
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 667,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
+      }
+
+      if (newspaper_id === "DAILY_FT") {
+        page.drawLine({
+          start: { x: 487 - CROSS_SIZE, y: 654 - CROSS_SIZE },
+          end: { x: 487 + CROSS_SIZE, y: 654 + CROSS_SIZE },
+          thickness: 1,
+        });
+
+        page.drawLine({
+          start: { x: 487 - CROSS_SIZE, y: 654 + CROSS_SIZE },
+          end: { x: 487 + CROSS_SIZE, y: 654 - CROSS_SIZE },
+          thickness: 1,
+        });
+
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 654,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
         });
       }
 
@@ -686,15 +820,6 @@ export async function POST(req: Request) {
         y: 705,
         size: 10,
         font: SINHALA_REGEX.test(String(effective_word_count))
-          ? sinhalaFont
-          : englishFont,
-      });
-
-      page.drawText(String(publish_date ?? ""), {
-        x: 500,
-        y: 775,
-        size: 10,
-        font: SINHALA_REGEX.test(String(publish_date))
           ? sinhalaFont
           : englishFont,
       });
@@ -811,129 +936,154 @@ export async function POST(req: Request) {
           end: { x: 487 + CROSS_SIZE, y: 680 - CROSS_SIZE },
           thickness: 1,
         });
-      }
 
-      // admin extra notes
-      if (attachments.noInsertions !== "0") {
-        page.drawText(
-          "Insert " + String(attachments.noInsertions ?? "") + " days",
-          {
-            x: 503,
-            y: 755,
-            size: 10,
-            font: SINHALA_REGEX.test(String(attachments.noInsertions))
-              ? sinhalaFont
-              : englishFont,
-            color: rgb(0, 0.5, 0.9),
-          },
-        );
-      }
-      page.drawText(String(attachments.classification ?? ""), {
-        x: 94,
-        y: 682,
-        size: 10,
-        font: SINHALA_REGEX.test(String(attachments.classification))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
+        page.drawText(String(publish_date ?? ""), {
+          x: 500,
+          y: 679,
+          size: 10,
+          font: SINHALA_REGEX.test(String(publish_date))
+            ? sinhalaFont
+            : englishFont,
+        });
 
-      if (attachments.isCarsOthers !== null) {
-        if (attachments.isCarsOthers === "c") {
+        if (background_color) {
           page.drawLine({
-            start: { x: 263 - CROSS_SIZE, y: 663 - CROSS_SIZE },
-            end: { x: 263 + CROSS_SIZE, y: 663 + CROSS_SIZE },
+            start: { x: 573 - CROSS_SIZE, y: 685 - CROSS_SIZE },
+            end: { x: 573 + CROSS_SIZE, y: 685 + CROSS_SIZE },
             thickness: 1,
-            color: rgb(0, 0.5, 0.9),
           });
 
           page.drawLine({
-            start: { x: 263 - CROSS_SIZE, y: 663 + CROSS_SIZE },
-            end: { x: 263 + CROSS_SIZE, y: 663 - CROSS_SIZE },
+            start: { x: 573 - CROSS_SIZE, y: 685 + CROSS_SIZE },
+            end: { x: 573 + CROSS_SIZE, y: 685 - CROSS_SIZE },
             thickness: 1,
-            color: rgb(0, 0.5, 0.9),
-          });
-        }
-        if (attachments.isCarsOthers === "o") {
-          page.drawLine({
-            start: { x: 330 - CROSS_SIZE, y: 663 - CROSS_SIZE },
-            end: { x: 330 + CROSS_SIZE, y: 663 + CROSS_SIZE },
-            thickness: 1,
-            color: rgb(0, 0.5, 0.9),
-          });
-
-          page.drawLine({
-            start: { x: 330 - CROSS_SIZE, y: 663 + CROSS_SIZE },
-            end: { x: 330 + CROSS_SIZE, y: 663 - CROSS_SIZE },
-            thickness: 1,
-            color: rgb(0, 0.5, 0.9),
           });
         }
       }
 
-      page.drawText(String(attachments.size ?? ""), {
-        x: 357,
-        y: 750,
-        size: 10,
-        font: SINHALA_REGEX.test(String(attachments.size))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
-
-      //naturally wrapping lines
-      const text = String(attachments.specialPosition ?? "");
-
-      // split by words
-      const words = text.split(" ");
-
-      const lines: string[] = [];
-      let currentLine = "";
-
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-
-        if (testLine.length <= 10) {
-          currentLine = testLine;
-        } else {
-          if (currentLine) lines.push(currentLine);
-          currentLine = word; // start new line
+      // admin extra notes - wijeya newspapers
+      {
+        if (attachments.noInsertions !== "0") {
+          page.drawText(
+            "Insert " + String(attachments.noInsertions ?? "") + " days",
+            {
+              x: 503,
+              y: 755,
+              size: 10,
+              font: SINHALA_REGEX.test(String(attachments.noInsertions))
+                ? sinhalaFont
+                : englishFont,
+              color: rgb(0, 0.5, 0.9),
+            },
+          );
         }
-      }
-
-      // push last line
-      if (currentLine) lines.push(currentLine);
-
-      // draw
-      lines.forEach((line, index) => {
-        page.drawText(line, {
-          x: 357,
-          y: 707 - index * 12,
-          size: 9,
-          font: SINHALA_REGEX.test(line) ? sinhalaFont : englishFont,
+        page.drawText(String(attachments.classification ?? ""), {
+          x: 94,
+          y: 682,
+          size: 10,
+          font: SINHALA_REGEX.test(String(attachments.classification))
+            ? sinhalaFont
+            : englishFont,
           color: rgb(0, 0.5, 0.9),
         });
-      });
 
-      page.drawText(String(attachments.color ?? ""), {
-        x: 357,
-        y: 647,
-        size: 10,
-        font: SINHALA_REGEX.test(String(attachments.color))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
+        if (attachments.isCarsOthers !== null) {
+          if (attachments.isCarsOthers === "c") {
+            page.drawLine({
+              start: { x: 263 - CROSS_SIZE, y: 663 - CROSS_SIZE },
+              end: { x: 263 + CROSS_SIZE, y: 663 + CROSS_SIZE },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
 
-      page.drawText(String(attachments.adminNotes ?? ""), {
-        x: 37,
-        y: 274,
-        size: 10,
-        font: SINHALA_REGEX.test(String(attachments.adminNotes))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
+            page.drawLine({
+              start: { x: 263 - CROSS_SIZE, y: 663 + CROSS_SIZE },
+              end: { x: 263 + CROSS_SIZE, y: 663 - CROSS_SIZE },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+          }
+          if (attachments.isCarsOthers === "o") {
+            page.drawLine({
+              start: { x: 330 - CROSS_SIZE, y: 663 - CROSS_SIZE },
+              end: { x: 330 + CROSS_SIZE, y: 663 + CROSS_SIZE },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+
+            page.drawLine({
+              start: { x: 330 - CROSS_SIZE, y: 663 + CROSS_SIZE },
+              end: { x: 330 + CROSS_SIZE, y: 663 - CROSS_SIZE },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+          }
+        }
+
+        page.drawText(String(attachments.size ?? ""), {
+          x: 357,
+          y: 750,
+          size: 10,
+          font: SINHALA_REGEX.test(String(attachments.size))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+
+        //naturally wrapping lines
+        const text = String(attachments.specialPosition ?? "");
+
+        // split by words
+        const words = text.split(" ");
+
+        const lines: string[] = [];
+        let currentLine = "";
+
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+          if (testLine.length <= 10) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) lines.push(currentLine);
+            currentLine = word; // start new line
+          }
+        }
+
+        // push last line
+        if (currentLine) lines.push(currentLine);
+
+        // draw
+        lines.forEach((line, index) => {
+          page.drawText(line, {
+            x: 357,
+            y: 707 - index * 12,
+            size: 9,
+            font: SINHALA_REGEX.test(line) ? sinhalaFont : englishFont,
+            color: rgb(0, 0.5, 0.9),
+          });
+        });
+
+        page.drawText(String(attachments.color ?? ""), {
+          x: 357,
+          y: 647,
+          size: 10,
+          font: SINHALA_REGEX.test(String(attachments.color))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+
+        page.drawText(String(attachments.adminNotes ?? ""), {
+          x: 37,
+          y: 274,
+          size: 10,
+          font: SINHALA_REGEX.test(String(attachments.adminNotes))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+      }
 
       // Draw category
       page.drawText(String(subcategory ?? ""), {
@@ -1057,26 +1207,36 @@ export async function POST(req: Request) {
           if (row >= ROW_Y.length) break;
 
           const text = normalizedText[i];
+          // wijeya newspapers - text print
+          // if (SINHALA_REGEX.test(text)) {
+          //   const pngBuffer = renderSinhalaTextToImage(text, 22);
+          //   const pngImage = await pdfDoc.embedPng(pngBuffer);
+          //   const dims = pngImage.scale(0.5); // adjust scale to fit
 
-          if (SINHALA_REGEX.test(text)) {
-            const pngBuffer = renderSinhalaTextToImage(text, 18);
-            const pngImage = await pdfDoc.embedPng(pngBuffer);
-            const dims = pngImage.scale(0.5); // adjust scale to fit
+          //   page.drawImage(pngImage, {
+          //     x: COLUMN_X[col],
+          //     y: ROW_Y[row] - dims.height, // shift down by image height
+          //     width: dims.width,
+          //     height: dims.height,
+          //   });
+          // } else {
+          //   page.drawText(text, {
+          //     x: COLUMN_X[col],
+          //     y: ROW_Y[row],
+          //     size: 10,
+          //     font: englishFont,
+          //   });
+          // }
+          const pngBuffer = renderSinhalaTextToImage(text, 22);
+          const pngImage = await pdfDoc.embedPng(pngBuffer);
+          const dims = pngImage.scale(0.5);
 
-            page.drawImage(pngImage, {
-              x: COLUMN_X[col],
-              y: ROW_Y[row] - dims.height, // shift down by image height
-              width: dims.width,
-              height: dims.height,
-            });
-          } else {
-            page.drawText(text, {
-              x: COLUMN_X[col],
-              y: ROW_Y[row],
-              size: 10,
-              font: englishFont,
-            });
-          }
+          page.drawImage(pngImage, {
+            x: COLUMN_X[col],
+            y: ROW_Y[row] - dims.height,
+            width: dims.width,
+            height: dims.height,
+          });
         }
       }
     }
@@ -2772,6 +2932,245 @@ export async function POST(req: Request) {
         size: 10,
         font: SINHALA_REGEX.test(String(todayDate)) ? sinhalaFont : englishFont,
       });
+    }
+    if (publisherName === "express_newspapers") {
+      if (newspaper_id === "SUNDAY_VIRAKESARI") {
+        page.drawText(String("Sunday Virakesari"), {
+          x: 118,
+          y: 654,
+          size: 12,
+          font: SINHALA_REGEX.test(String("Sunday Virakesari"))
+            ? sinhalaFont
+            : englishFont,
+        });
+      }
+      if (
+        newspaper_id === "VIRAKESARI" ||
+        newspaper_id === "DAILY_VIRAKESARI"
+      ) {
+        page.drawText(String("Daily Virakesari"), {
+          x: 118,
+          y: 654,
+          size: 12,
+          font: SINHALA_REGEX.test(String("Daily Virakesari"))
+            ? sinhalaFont
+            : englishFont,
+        });
+      }
+
+      page.drawText(String(publish_date ?? ""), {
+        x: 113,
+        y: 630,
+        size: 12,
+        font: SINHALA_REGEX.test(String(publish_date))
+          ? sinhalaFont
+          : englishFont,
+      });
+
+      // source - paper agent cross
+      page.drawLine({
+        start: {
+          x: 450 - CROSS_SIZE_SMALL,
+          y: 698 - CROSS_SIZE_SMALL,
+        },
+        end: {
+          x: 450 + CROSS_SIZE_SMALL,
+          y: 698 + CROSS_SIZE_SMALL,
+        },
+        thickness: 2,
+      });
+
+      page.drawLine({
+        start: {
+          x: 450 - CROSS_SIZE_SMALL,
+          y: 698 + CROSS_SIZE_SMALL,
+        },
+        end: {
+          x: 450 + CROSS_SIZE_SMALL,
+          y: 698 - CROSS_SIZE_SMALL,
+        },
+        thickness: 2,
+      });
+
+      if (classified_ad.is_co_paper) {
+        page.drawText(String("Yes"), {
+          x: 503,
+          y: 595,
+          size: 10,
+          font: SINHALA_REGEX.test(String("Yes")) ? sinhalaFont : englishFont,
+        });
+      } else {
+        page.drawText(String("No"), {
+          x: 503,
+          y: 595,
+          size: 10,
+          font: SINHALA_REGEX.test(String("No")) ? sinhalaFont : englishFont,
+        });
+      }
+      // page.drawText(String(effective_word_count ?? ""), {
+      //   x: 455,
+      //   y: 470,
+      //   size: 10,
+      //   font: SINHALA_REGEX.test(String(effective_word_count ?? ""))
+      //     ? sinhalaFont
+      //     : englishFont,
+      // });
+
+      // Draw advertiser info
+      await drawSmartText({
+        page,
+        pdfDoc,
+        text: formatAdvertiserName(advertiser_name),
+        x: 108,
+        y: 743,
+        fontSize: 12,
+        englishFont,
+      });
+
+      const address = advertiser_address ?? "";
+
+      if (address.length > 35) {
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: address.slice(0, 35),
+          x: 81,
+          y: 722,
+          fontSize: 12,
+          englishFont,
+        });
+
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: address.slice(35),
+          x: 81,
+          y: 703, // second line coordinate
+          fontSize: 12,
+          englishFont,
+        });
+      } else {
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: address,
+          x: 81,
+          y: 722,
+          fontSize: 12,
+          englishFont,
+        });
+      }
+
+      await drawSmartText({
+        page,
+        pdfDoc,
+        text: advertiser_phone ?? "",
+        x: 78,
+        y: 675,
+        fontSize: 12,
+        englishFont,
+      });
+
+      await drawSmartText({
+        page,
+        pdfDoc,
+        text: advertiser_nic ?? "",
+        x: 320,
+        y: 24,
+        fontSize: 11,
+        englishFont,
+      });
+
+      await drawSmartText({
+        page,
+        pdfDoc,
+        text: getSignature(advertiser_name),
+        x: 456,
+        y: 35,
+        fontSize: 9.5,
+        englishFont,
+      });
+
+      page.drawText(String(reference_number ?? ""), {
+        x: 454,
+        y: 773,
+        size: 11,
+        font: SINHALA_REGEX.test(String(reference_number))
+          ? sinhalaFont
+          : englishFont,
+      });
+
+      const todayDate = getTodayYMD();
+      page.drawText(String(todayDate ?? ""), {
+        x: 199,
+        y: 25,
+        size: 11,
+        font: SINHALA_REGEX.test(String(todayDate)) ? sinhalaFont : englishFont,
+      });
+
+      // await drawAdTextBlock(
+      //   page,
+      //   pdfDoc,
+      //   finalAdvertisementText,
+      //   32, // x position
+      //   558, // starting Y
+      //   22, // line gap (adjust this to increase/decrease vertical spacing)
+      //   520, // column width in points (adjust to fit your PDF layout)
+      //   sinhalaFont,
+      //   englishFont,
+      //   13, // font size
+      //   15, // max lines
+      // );
+
+      const normalizedText = normalizeAdText(
+        finalAdvertisementText,
+        agency.ad_text_type,
+      );
+      const { COLUMN_X, ROW_Y } = getCoordinates(agency.publisher_name);
+      const wordsToPrint = Math.min(
+        normalizedText.length,
+        MAX_WORDS,
+        COLUMN_X.length * ROW_Y.length,
+      );
+
+      // Draw ad text
+      for (let i = 0; i < wordsToPrint; i++) {
+        const col = i % COLUMN_X.length;
+        const row = Math.floor(i / COLUMN_X.length);
+        if (row >= ROW_Y.length) break;
+
+        const text = normalizedText[i];
+        // wijeya newspapers - text print
+        // if (SINHALA_REGEX.test(text)) {
+        //   const pngBuffer = renderSinhalaTextToImage(text, 22);
+        //   const pngImage = await pdfDoc.embedPng(pngBuffer);
+        //   const dims = pngImage.scale(0.5); // adjust scale to fit
+
+        //   page.drawImage(pngImage, {
+        //     x: COLUMN_X[col],
+        //     y: ROW_Y[row] - dims.height, // shift down by image height
+        //     width: dims.width,
+        //     height: dims.height,
+        //   });
+        // } else {
+        //   page.drawText(text, {
+        //     x: COLUMN_X[col],
+        //     y: ROW_Y[row],
+        //     size: 10,
+        //     font: englishFont,
+        //   });
+        // }
+        const pngBuffer = renderSinhalaTextToImage(text, 22);
+        const pngImage = await pdfDoc.embedPng(pngBuffer);
+        const dims = pngImage.scale(0.5);
+
+        page.drawImage(pngImage, {
+          x: COLUMN_X[col],
+          y: ROW_Y[row] - dims.height,
+          width: dims.width,
+          height: dims.height,
+        });
+      }
     }
     const pdfBytes = await pdfDoc.save();
     const pdfBuffer = Buffer.from(pdfBytes);

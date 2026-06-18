@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { AlertProvider } from "../contexts/AlertContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,10 +56,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${sinhalaFont.variable} ${sinhalaFontB.variable} font-raleway bg-white text-[#1F262E]`}
       >
-        <Header />
-        <main className="pt-[160px] min-h-screen">{children}</main>
-        <Footer />
-        <Toaster position="top-center" />
+        <AlertProvider>
+          <Header />
+          <main className="pt-[160px] min-h-screen">{children}</main>
+          <Footer />
+          <Toaster />
+        </AlertProvider>
       </body>
     </html>
   );

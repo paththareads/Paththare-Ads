@@ -19,11 +19,22 @@ export default function StepSelectNewspaper({
   const [activeTab, setActiveTab] = useState<
     "daily" | "sunday" | "weekly" | "monthly"
   >("daily");
+
+  const [activeLanguage, setActiveLanguage] = useState<
+    "all" | "si" | "en" | "ta"
+  >("all");
   const tabs = [
     { key: "daily", en: "Daily", si: "දිනපතා පුවත්පත්" },
     { key: "sunday", en: "Sunday", si: "ඉරිදා පුවත්පත්" },
     { key: "weekly", en: "Weekly", si: "සතිපතා පුවත්පත්" },
     { key: "monthly", en: "Monthly", si: "මාසික පුවත්පත්" },
+  ] as const;
+
+  const languageTabs = [
+    { key: "all", en: "All", native: "All" },
+    { key: "si", en: "Sinhala", native: "සිංහල" },
+    { key: "en", en: "English", native: "English" },
+    { key: "ta", en: "Tamil", native: "தமிழ்" },
   ] as const;
 
   const [newspapers, setNewspapers] = useState<any[]>([]);
@@ -59,13 +70,28 @@ export default function StepSelectNewspaper({
   // Filter newspapers by tab
   const filteredNewspapers = newspapers.filter((paper: any) => {
     const type = paper.type?.toLowerCase();
-    return activeTab === "daily"
-      ? type === "daily"
-      : activeTab === "sunday"
-        ? type === "sunday"
-        : activeTab === "weekly"
-          ? type === "weekly"
-          : type === "monthly";
+
+    const typeMatch =
+      activeTab === "daily"
+        ? type === "daily"
+        : activeTab === "sunday"
+          ? type === "sunday"
+          : activeTab === "weekly"
+            ? type === "weekly"
+            : type === "monthly";
+
+    const language = paper.language?.toUpperCase();
+
+    const languageMatch =
+      activeLanguage === "all"
+        ? true
+        : activeLanguage === "si"
+          ? language === "SI" || language === ""
+          : activeLanguage === "en"
+            ? language === "EN"
+            : language === "TA";
+
+    return typeMatch && languageMatch;
   });
 
   const handleSelectNewspaper = (paper: any) => {
@@ -96,6 +122,7 @@ export default function StepSelectNewspaper({
         allowed_weekdays: paper.allowed_weekdays,
         allowed_month_days: paper.allowed_month_days,
         lm_image: paper.lm_image,
+        lm_images: paper.lm_images,
         lm_description: paper.lm_description,
         ad_time_limit: paper.ad_time_limit,
         day_before: paper.day_before,
@@ -207,6 +234,36 @@ export default function StepSelectNewspaper({
             <span className="text-primary text-2xl mr-1">›</span>
           </div>
         )}
+      </div>
+
+      <div className="flex justify-center gap-2 px-4">
+        {languageTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveLanguage(tab.key)}
+            className={`
+              min-w-[120px]
+        px-3 py-2
+        rounded-xl
+        font-medium
+        transition
+        ${
+          activeLanguage === tab.key
+            ? "bg-primary-accent text-white shadow-md"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }
+      `}
+          >
+            <div
+              className="text-xs text-center"
+              style={{
+                fontFamily: "var(--font-sinhala), sans-serif",
+              }}
+            >
+              {tab.native}
+            </div>
+          </button>
+        ))}
       </div>
 
       {/* ================= GRID ================= */}

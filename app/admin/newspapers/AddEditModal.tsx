@@ -1,5 +1,7 @@
 "use client";
 
+// import { useAlert } from "@/app/contexts/AlertContext";
+import { useAlert } from "../../contexts/AlertContext";
 import { Prisma } from "@prisma/client";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -100,6 +102,7 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
       allowed_month_days: [],
       publisher_email: "",
       lm_image: "",
+      lm_images: [],
       lm_description: "",
       ad_time_limit: 0,
       day_before: "1",
@@ -113,14 +116,19 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
   const [adTypeOptions, setAdTypeOptions] = useState<string[]>([]);
 
   const [modalAlert, setModalAlert] = useState<string | null>(null);
+  const { showAlert } = useAlert();
 
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const validate = () => {
     const newErrors: any = {};
-    if (!form.name?.trim()) newErrors.name = "Newspaper name is required";
+    if (!form.name?.trim()) {
+      newErrors.name = "Newspaper name is required";
+      showAlert("Newspaper name is required!");
+    }
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -320,13 +328,62 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
     });
   }
 
+  // mulitple upload new function
+  const handleImageUpload = async (files: FileList | File[]) => {
+    const selectedFiles = Array.from(files);
+
+    // Maximum 4 images
+    if (form.lm_images.length + selectedFiles.length > 4) {
+      showAlert("Maximum 4 images allowed");
+      return;
+    }
+
+    // Validate sizes
+    const oversized = selectedFiles.find(
+      (file) => file.size > 15 * 1024 * 1024,
+    );
+
+    if (oversized) {
+      showAlert("Each image must be less than 15MB");
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      const uploadedUrls: string[] = [];
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+
+        const res = await uploadImageToCloudinary(file, (percent) => {
+          setUploadProgress(percent);
+        });
+
+        uploadedUrls.push(res.secure_url);
+      }
+
+      setForm((prev: any) => ({
+        ...prev,
+        lm_images: [...prev.lm_images, ...uploadedUrls],
+      }));
+    } catch (err) {
+      console.error(err);
+      alert("Image upload failed");
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   /* ---------------- SAVE ---------------- */
   const save = async () => {
     if (!validate()) return;
 
     if (adTypes.length === 0) {
-      setTypeError(true);
-      toast.error("At least one ad type must be added");
+      // setTypeError(true);
+      // toast.error("At least one ad type must be added");
+      showAlert("At least one type should be added!");
       return;
     }
 
@@ -355,7 +412,8 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
       allowed_month_days: form.allowed_month_days,
       allowed_weekdays: form.allowed_weekdays,
       publisher_email: form.publisher_email,
-      lm_image: form.lm_image,
+      lm_image: form.lm_images[0] || null,
+      lm_images: form.lm_images,
       lm_description: form.lm_description,
       ad_time_limit: form.ad_time_limit,
       day_before: form.day_before,
@@ -477,6 +535,11 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
           allowed_weekdays: data.allowed_weekdays,
           publisher_email: data.publisher_email,
           lm_image: data.lm_image,
+          lm_images: data.lm_images?.length
+            ? data.lm_images
+            : data.lm_image
+              ? [data.lm_image]
+              : [],
           lm_description: data.lm_description,
           ad_time_limit: data.ad_time_limit,
           day_before: data.day_before,
@@ -1110,79 +1173,29 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
                 <div
                   className="mt-2 flex h-32 w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-sm text-gray-500 hover:border-primary"
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={async (e) => {
+                  onDrop={(e) => {
                     e.preventDefault();
-                    const file = e.dataTransfer.files?.[0];
-                    if (!file) return;
-
-                    if (file.size > 15 * 1024 * 1024) {
-                      alert("Image must be less than 15MB");
-                      return;
-                    }
-
-                    try {
-                      setUploading(true);
-                      setUploadProgress(0);
-
-                      const res = await uploadImageToCloudinary(
-                        file,
-                        (percent) => {
-                          setUploadProgress(percent);
-                        },
-                      );
-
-                      setForm({
-                        ...form,
-                        lm_image: res.secure_url,
-                      });
-                    } catch {
-                      alert("Image upload failed");
-                    } finally {
-                      setUploading(false);
-                    }
+                    handleImageUpload(e.dataTransfer.files);
                   }}
                   onClick={() =>
                     document.getElementById("hiddenFileInput")?.click()
                   }
                 >
-                  Drag & Drop image here or click to upload
+                  {form.lm_images.length >= 4
+                    ? "Maximum 4 images uploaded"
+                    : "Drag & Drop images here or click to upload"}
                 </div>
 
                 {/* Hidden fallback input */}
                 <input
                   id="hiddenFileInput"
                   type="file"
+                  multiple
                   accept="image/*"
                   className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-
-                    if (file.size > 15 * 1024 * 1024) {
-                      alert("Image must be less than 15MB");
-                      return;
-                    }
-
-                    try {
-                      setUploading(true);
-                      setUploadProgress(0);
-
-                      const res = await uploadImageToCloudinary(
-                        file,
-                        (percent) => {
-                          setUploadProgress(percent);
-                        },
-                      );
-
-                      setForm({
-                        ...form,
-                        lm_image: res.secure_url,
-                      });
-                    } catch {
-                      alert("Image upload failed");
-                    } finally {
-                      setUploading(false);
-                    }
+                  onChange={(e) => {
+                    if (!e.target.files) return;
+                    handleImageUpload(e.target.files);
                   }}
                 />
 
@@ -1194,12 +1207,33 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
                 )}
 
                 {/* Preview */}
-                {form.lm_image && (
-                  <img
-                    src={form.lm_image}
-                    alt="Preview"
-                    className="mt-3 h-32 rounded-lg border object-cover"
-                  />
+                {form.lm_images.length > 0 && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {form.lm_images.map((url: string, index: number) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          className="h-32 w-full rounded-lg border object-cover"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm((prev: any) => ({
+                              ...prev,
+                              lm_images: prev.lm_images.filter(
+                                (_: any, i: any) => i !== index,
+                              ),
+                            }))
+                          }
+                          className="absolute right-1 top-1 rounded bg-red-500 px-2 py-1 text-xs text-white"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* Text Area */}
@@ -1259,11 +1293,7 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
             </div>
 
             {/* Type Error */}
-            {typeError && (
-              <p className="text-center text-sm font-medium text-red-600">
-                At least one type should be added!
-              </p>
-            )}
+            {typeError && showAlert("At least one type must be added!")}
 
             {/* Types of Ads */}
             <div className="rounded-2xl border bg-gray-50 p-5">

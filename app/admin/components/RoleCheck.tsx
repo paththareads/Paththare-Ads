@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useAlert } from "../../contexts/AlertContext";
 
 interface RoleCheckProps {
   allowedRoles: string[];
@@ -12,6 +13,7 @@ interface RoleCheckProps {
 export default function RoleCheck({ allowedRoles, children }: RoleCheckProps) {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const router = useRouter();
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     // Read cookie from browser (client-only)
@@ -23,7 +25,8 @@ export default function RoleCheck({ allowedRoles, children }: RoleCheckProps) {
 
     if (!rolesCookie) {
       setHasAccess(false);
-      toast.error("You do not have access to this page!");
+      // toast.error("You do not have access to this page!");
+      showAlert("You do not have access to this page!");
       return;
     }
 

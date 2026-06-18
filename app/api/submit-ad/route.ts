@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     } else {
     }
 
-    // ✅ Step 1: Create or find advertiser
+    // Step 1: Create or find advertiser
     // let advertiserRecord = await prisma.advertisers.findFirst({
     //   where: {
     //     email: advertiser.email,
@@ -103,6 +103,21 @@ export async function POST(req: Request) {
       }
     }
 
+    const newspaper = await prisma.newspapers.findUnique({
+      where: {
+        newspaper_serial_no: advertisement.newspaper_serial_no,
+      },
+      select: {
+        agency_id: true,
+      },
+    });
+
+    const agencyPrefix = String(newspaper?.agency_id ?? 0)
+      .padStart(4, "0")
+      .slice(-4);
+
+    const referenceCmb = `${agencyPrefix}${referenceNumber}`;
+
     const rawToken = crypto.randomBytes(24).toString("hex");
     // const trackingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/ads/track/${referenceNumber}?t=${rawToken}`;
     const trackingLink = `/ads/track/${referenceNumber}?t=${rawToken}`;
@@ -112,6 +127,7 @@ export async function POST(req: Request) {
     const adRecord = await prisma.advertisements.create({
       data: {
         reference_number: referenceNumber,
+        reference_cmb: referenceCmb,
         advertiser_id: advertiserRecord.advertiser_id,
         newspaper_name: advertisement.newspaper_name,
         // newspaper_name: "Change this later",

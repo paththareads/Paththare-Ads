@@ -101,6 +101,7 @@ interface FormData {
   userIntFC: boolean;
   userIntHighlight: boolean;
   tmagree: boolean;
+  isRead: boolean;
   // fullpagead: boolean;
   // halfPageAdHR: boolean;
   // halfPageAdVR: boolean;
@@ -176,6 +177,7 @@ export default function PostAdPage() {
     userIntFC: false,
     userIntHighlight: false,
     tmagree: false,
+    isRead: false,
     // fullpagead: false,
     // halfPageAdHR: false,
     // halfPageAdVR: false,

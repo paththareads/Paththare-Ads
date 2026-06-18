@@ -94,7 +94,7 @@ export default function AdminNewspapers() {
 
   const getColumns = () => {
     if (typeof window === "undefined") return 1;
-    if (window.innerWidth >= 1280) return 3; // xl
+    if (window.innerWidth >= 1280) return 4; // xl
     if (window.innerWidth >= 640) return 2; // sm
     return 1;
   };
@@ -113,7 +113,7 @@ export default function AdminNewspapers() {
 
   const paginatedList = filteredList.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function AdminNewspapers() {
 
   function NewspaperSkeleton() {
     return (
-      <div className="animate-pulse rounded-2xl border bg-white p-6">
+      <div className="animate-pulse rounded-2xl bg-white p-6">
         <div className="h-4 w-2/3 rounded bg-gray-200 mb-2" />
         <div className="h-3 w-1/3 rounded bg-gray-200 mb-4" />
 
@@ -207,7 +207,7 @@ export default function AdminNewspapers() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-5">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <NewspaperSkeleton key={i} />

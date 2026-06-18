@@ -92,10 +92,7 @@ export default function AdminSettings() {
 
         <div className="overflow-x-auto bg-white shadow rounded-lg">
           <table className="min-w-full text-sm border-collapse">
-            <thead
-              className="uppercase text-xs"
-              style={{ background: "var(--color-primary-accent)" }}
-            >
+            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
               <tr>
                 <th className="px-3 py-2">ID</th>
                 <th className="px-3 py-2">Ad Type Name</th>
@@ -109,7 +106,7 @@ export default function AdminSettings() {
               {rows === null
                 ? // Skeleton Shimmer
                   Array.from({ length: LIMIT }).map((_, i) => (
-                    <tr key={i} className="border-t animate-pulse">
+                    <tr key={i} className="animate-pulse">
                       {Array.from({ length: 5 }).map((__, j) => (
                         <td key={j} className="px-3 py-2">
                           <div className="h-4 w-full rounded bg-gray-200" />
@@ -118,7 +115,7 @@ export default function AdminSettings() {
                     </tr>
                   ))
                 : rows.map((row, i) => (
-                    <tr key={i} className="border-t">
+                    <tr key={i}>
                       <td className="px-3 py-2 text-gray-500">
                         {row.id ?? "—"}
                       </td>
@@ -129,7 +126,7 @@ export default function AdminSettings() {
                           onChange={(e) =>
                             updateRow(i, "ad_type_name", e.target.value)
                           }
-                          className="border rounded px-2 py-1 w-full"
+                          className="border-b border-b-gray-300 rounded px-2 py-1 w-full"
                         />
                       </td>
 
@@ -141,7 +138,7 @@ export default function AdminSettings() {
                           onChange={(e) =>
                             updateRow(i, "ad_type_name_code", e.target.value)
                           }
-                          className="border rounded px-2 py-1 w-full text-gray-600"
+                          className="rounded px-2 py-1 w-full text-gray-500"
                         />
                       </td>
 
