@@ -123,6 +123,8 @@ model advertisements {
   tracking_link           String?
   latest_email_sent       String?
   emailed_at              DateTime?                 @db.Timestamp(6)
+  is_read                 Boolean?                  @default(false)
+  reference_cmb           String?                   @db.Char(20)
   ad_price_change_history ad_price_change_history[]
   ad_review_history       ad_review_history[]
   ad_status_history       ad_status_history[]
@@ -234,8 +236,11 @@ model newspapers {
   ad_time_limit              Int?
   day_before                 String?
   date_before                String?
+  agency_id                  Int?
+  lm_images                  String[]         @default([])
   ad_types                   ad_types[]
   advertisements             advertisements[]
+  agency                     agency?          @relation(fields: [agency_id], references: [id], onDelete: Cascade, map: "fk_agency_newspaper")
   publishers                 publishers       @relation(fields: [publisher_id], references: [id], map: "fk_newspapers_publishers")
 }
 
@@ -397,15 +402,16 @@ model ad_section_box_pricing {
 }
 
 model agency {
-  id             Int       @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   agent_name     String
   agent_address  String?
   agent_tel      String?
   agent_no       String?
-  papers         String[]  @default([])
-  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  papers         String[]     @default([])
+  created_at     DateTime?    @default(now()) @db.Timestamptz(6)
   publisher_name String?
   ad_text_type   String?
+  newspapers     newspapers[]
 }
 
 model publishers {

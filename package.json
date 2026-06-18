@@ -27,6 +27,7 @@
     "framer-motion": "^12.23.24",
     "ioredis": "^5.8.1",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.545.0",
     "next": "^16.0.10",
     "next-auth": "^5.0.0-beta.30",
@@ -44,6 +45,7 @@
     "recharts": "^3.8.0",
     "regenerator-runtime": "^0.14.1",
     "resend": "^6.3.0",
+    "swiper": "^12.2.0",
     "tailwindcss": "^4.1.12",
     "zod": "^4.1.12"
   },
