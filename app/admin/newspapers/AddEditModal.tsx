@@ -1293,7 +1293,7 @@ export default function AddEditModal({ item, onClose, onSaved }: any) {
             </div>
 
             {/* Type Error */}
-            {typeError && showAlert("At least one type must be added!")}
+            {/* {typeError && showAlert("At least one type must be added!")} */}
 
             {/* Types of Ads */}
             <div className="rounded-2xl border bg-gray-50 p-5">
