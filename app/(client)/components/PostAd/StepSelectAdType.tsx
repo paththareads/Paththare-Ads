@@ -176,7 +176,7 @@ export default function StepSelectAdType({
   const [selectedDistrict, setselectedDistrict] = useState<string>("");
   const [selectedProvince, setselectedProvince] = useState<string>("");
   const [showScrollMessage, setShowScrollMessage] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const [noOfColumnsPerPage, setNoOfColumnsPerPage] = useState<number>(
     formData.selectedNewspaper.no_col_per_page,
