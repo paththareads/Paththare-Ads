@@ -940,15 +940,37 @@ export default function StepSelectAdType({
                     />
                   </div>
 
-                  <h3 className="font-semibold text-center">{ad.name}</h3>
+                  <h3
+                    className="font-extrabold text-center"
+                    style={{
+                      fontFamily: "var(--font-sinhala), sans-serif",
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      textShadow: "0 0 0.5px currentColor",
+                    }}
+                  >
+                    {ad.name}
+                  </h3>
 
                   {ad.extra_notes1 && (
-                    <p className="text-sm text-gray-500 text-center">
+                    <p
+                      className=" py-2 text-sm text-blue-800 text-center"
+                      style={{
+                        fontFamily: "var(--font-sinhala), sans-serif",
+                        fontSize: "12px",
+                      }}
+                    >
                       {ad.extra_notes1}
                     </p>
                   )}
                   {ad.extra_notes2 && (
-                    <p className="text-sm text-gray-500 text-center">
+                    <p
+                      className="text-sm text-green-800 text-center"
+                      style={{
+                        fontFamily: "var(--font-sinhala), sans-serif",
+                        fontSize: "12px",
+                      }}
+                    >
                       {ad.extra_notes2}
                     </p>
                   )}
