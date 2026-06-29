@@ -326,6 +326,80 @@ export async function drawAdTextBlock(
   }
 }
 
+export async function drawAdTextBlockAssociated(
+  page: any,
+  pdfDoc: PDFDocument,
+  adText: string,
+  x: number,
+  startY: number,
+  lineGap: number,
+  columnWidth: number, // width of text column for wrapping
+  sinhalaFont: any,
+  englishFont: any,
+  fontSize: number,
+  maxLines: number = 100,
+) {
+  if (!adText?.trim()) return;
+
+  const words = adText.trim().split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (SINHALA_REGEX.test(word)) {
+      // Sinhala: approximate visual width using characters * fontSize * 0.6
+      const approxWidth = testLine.length * fontSize * 0.55;
+      if (approxWidth <= columnWidth) {
+        currentLine = testLine;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+        if (lines.length >= maxLines) break;
+      }
+    } else {
+      // English: simple width estimate
+      const approxWidth = testLine.length * fontSize * 0.5;
+      if (approxWidth <= columnWidth) {
+        currentLine = testLine;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+        if (lines.length >= maxLines) break;
+      }
+    }
+  }
+
+  if (currentLine && lines.length < maxLines) lines.push(currentLine);
+
+  // Draw each line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const yPos = startY - i * lineGap;
+
+    if (SINHALA_REGEX.test(line)) {
+      const pngBuffer = renderSinhalaTextToImageLine(line, fontSize * 2); // double font size for clarity
+      const pngImage = await pdfDoc.embedPng(pngBuffer);
+      const dims = pngImage.scale(0.5); // scale down to fit
+
+      page.drawImage(pngImage, {
+        x,
+        y: yPos - dims.height,
+        width: dims.width,
+        height: dims.height,
+      });
+    } else {
+      page.drawText(line, {
+        x,
+        y: yPos,
+        size: fontSize,
+        font: englishFont,
+      });
+    }
+  }
+}
+
 const getTodayYMD = () => {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -368,7 +442,7 @@ const getCoordinates = (publisherName: string) => {
       return {
         COLUMN_X: [30, 137, 248, 361, 473],
         ROW_Y: [
-          483, 460, 437, 415, 393, 370, 347, 327, 305, 283, 261, 239, 217,
+          493, 470, 447, 425, 403, 380, 357, 337, 315, 293, 271, 249, 227,
         ],
       };
     case "ceylon_newspapers":
@@ -964,19 +1038,17 @@ export async function POST(req: Request) {
       // admin extra notes - wijeya newspapers
       {
         if (attachments.noInsertions !== "0") {
-          page.drawText(
-            "Insert " + String(attachments.noInsertions ?? "") + " days",
-            {
-              x: 503,
-              y: 755,
-              size: 10,
-              font: SINHALA_REGEX.test(String(attachments.noInsertions))
-                ? sinhalaFont
-                : englishFont,
-              color: rgb(0, 0.5, 0.9),
-            },
-          );
+          page.drawText(String(attachments.noInsertions ?? ""), {
+            x: 503,
+            y: 755,
+            size: 7,
+            font: SINHALA_REGEX.test(String(attachments.noInsertions))
+              ? sinhalaFont
+              : englishFont,
+            color: rgb(0, 0.5, 0.9),
+          });
         }
+
         page.drawText(String(attachments.classification ?? ""), {
           x: 94,
           y: 682,
@@ -1127,15 +1199,59 @@ export async function POST(req: Request) {
         englishFont,
       });
 
-      await drawSmartText({
-        page,
-        pdfDoc,
-        text: advertiser_address ?? "",
-        x: 115,
-        y: 95,
-        fontSize: 10,
-        englishFont,
-      });
+      // await drawSmartText({
+      //   page,
+      //   pdfDoc,
+      //   text: advertiser_address ?? "",
+      //   x: 115,
+      //   y: 95,
+      //   fontSize: 10,
+      //   englishFont,
+      // });
+
+      const address = advertiser_address ?? "";
+
+      if (address.length > 30) {
+        // Find a space near the 30th character to avoid splitting a word
+        let splitIndex = address.lastIndexOf(" ", 30);
+
+        if (splitIndex === -1) {
+          splitIndex = 30;
+        }
+
+        const line1 = address.substring(0, splitIndex).trim();
+        const line2 = address.substring(splitIndex).trim();
+
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: line1,
+          x: 115,
+          y: 95,
+          fontSize: 10,
+          englishFont,
+        });
+
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: line2,
+          x: 115,
+          y: 83,
+          fontSize: 10,
+          englishFont,
+        });
+      } else {
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: address,
+          x: 115,
+          y: 95,
+          fontSize: 10,
+          englishFont,
+        });
+      }
 
       await drawSmartText({
         page,
@@ -1508,7 +1624,7 @@ export async function POST(req: Request) {
           pdfDoc,
           finalAdvertisementText,
           45, // x position
-          435, // starting Y
+          430, // starting Y
           17, // line gap (adjust this to increase/decrease vertical spacing)
           375, // column width in points (adjust to fit your PDF layout)
           sinhalaFont,
@@ -1519,35 +1635,37 @@ export async function POST(req: Request) {
         // }
       } else {
         //admin notes - associated papers - except marriage, name notice, casual, photo_classified and death notice
-        page.drawText(String(attachments.classfication ?? ""), {
-          x: 197,
-          y: 353,
-          size: 10,
-          font: SINHALA_REGEX.test(String(attachments.classfication ?? ""))
-            ? sinhalaFont
-            : englishFont,
-          color: rgb(0, 0.5, 0.9),
-        });
+        {
+          page.drawText(String(attachments.classfication ?? ""), {
+            x: 197,
+            y: 353,
+            size: 10,
+            font: SINHALA_REGEX.test(String(attachments.classfication ?? ""))
+              ? sinhalaFont
+              : englishFont,
+            color: rgb(0, 0.5, 0.9),
+          });
 
-        page.drawText(String(attachments.noInsertions ?? ""), {
-          x: 426,
-          y: 450,
-          size: 10,
-          font: SINHALA_REGEX.test(String(attachments.noInsertions ?? ""))
-            ? sinhalaFont
-            : englishFont,
-          color: rgb(0, 0.5, 0.9),
-        });
+          page.drawText(String(attachments.noInsertions ?? ""), {
+            x: 426,
+            y: 450,
+            size: 10,
+            font: SINHALA_REGEX.test(String(attachments.noInsertions ?? ""))
+              ? sinhalaFont
+              : englishFont,
+            color: rgb(0, 0.5, 0.9),
+          });
 
-        page.drawText(String(attachments.adminNotes ?? ""), {
-          x: 31,
-          y: 119,
-          size: 10,
-          font: SINHALA_REGEX.test(String(attachments.adminNotes ?? ""))
-            ? sinhalaFont
-            : englishFont,
-          color: rgb(0, 0.5, 0.9),
-        });
+          page.drawText(String(attachments.adminNotes ?? ""), {
+            x: 31,
+            y: 119,
+            size: 10,
+            font: SINHALA_REGEX.test(String(attachments.adminNotes ?? ""))
+              ? sinhalaFont
+              : englishFont,
+            color: rgb(0, 0.5, 0.9),
+          });
+        }
 
         page.drawText(String(reference_number) ?? "", {
           x: 487,
@@ -1989,14 +2107,14 @@ export async function POST(req: Request) {
           });
         }
 
-        page.drawText(String(subcategory ?? ""), {
-          x: 260,
-          y: 352,
-          size: 10,
-          font: SINHALA_REGEX.test(String(subcategory ?? ""))
-            ? sinhalaFont
-            : englishFont,
-        });
+        // page.drawText(String(subcategory ?? ""), {
+        //   x: 260,
+        //   y: 352,
+        //   size: 10,
+        //   font: SINHALA_REGEX.test(String(subcategory ?? ""))
+        //     ? sinhalaFont
+        //     : englishFont,
+        // });
 
         if (ad_type !== "casual") {
           // Normalize ad text
@@ -2041,19 +2159,19 @@ export async function POST(req: Request) {
           }
         }
 
-        // const category_X = [511, 540, 570];
-        // const category_Y = 394;
+        const category_X = [503, 532, 562];
+        const category_Y = 385;
 
-        // const cat = String(subcategory ?? "");
+        const cat = String(subcategory ?? "");
 
-        // for (let i = 0; i < cat.length; i++) {
-        //   page.drawText(cat[i], {
-        //     x: category_X[i],
-        //     y: category_Y,
-        //     size: 11,
-        //     font: SINHALA_REGEX.test(cat[i]) ? sinhalaFont : englishFont,
-        //   });
-        // }
+        for (let i = 0; i < cat.length; i++) {
+          page.drawText(cat[i], {
+            x: category_X[i],
+            y: category_Y,
+            size: 11,
+            font: SINHALA_REGEX.test(cat[i]) ? sinhalaFont : englishFont,
+          });
+        }
       }
 
       //Draw sizes for casual and marriage
@@ -2105,195 +2223,256 @@ export async function POST(req: Request) {
       }
     }
     if (publisherName === "liberty_publishers") {
-      if (attachments.isCarsOthers !== null) {
-        if (attachments.isCarsOthers === "c") {
+      //  admin attachments
+      {
+        if (attachments.isCarsOthers !== null) {
+          if (attachments.isCarsOthers === "c") {
+            page.drawLine({
+              start: {
+                x: 378 - CROSS_SIZE_SMALL_XS,
+                y: 564 - CROSS_SIZE_SMALL_XS,
+              },
+              end: {
+                x: 378 + CROSS_SIZE_SMALL_XS,
+                y: 564 + CROSS_SIZE_SMALL_XS,
+              },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+
+            page.drawLine({
+              start: {
+                x: 378 - CROSS_SIZE_SMALL_XS,
+                y: 564 + CROSS_SIZE_SMALL_XS,
+              },
+              end: {
+                x: 378 + CROSS_SIZE_SMALL_XS,
+                y: 564 - CROSS_SIZE_SMALL_XS,
+              },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+          }
+          if (attachments.isCarsOthers === "o") {
+            page.drawLine({
+              start: {
+                x: 437 - CROSS_SIZE_SMALL_XS,
+                y: 564 - CROSS_SIZE_SMALL_XS,
+              },
+              end: {
+                x: 437 + CROSS_SIZE_SMALL_XS,
+                y: 564 + CROSS_SIZE_SMALL_XS,
+              },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+
+            page.drawLine({
+              start: {
+                x: 437 - CROSS_SIZE_SMALL_XS,
+                y: 564 + CROSS_SIZE_SMALL_XS,
+              },
+              end: {
+                x: 437 + CROSS_SIZE_SMALL_XS,
+                y: 564 - CROSS_SIZE_SMALL_XS,
+              },
+              thickness: 1,
+              color: rgb(0, 0.5, 0.9),
+            });
+          }
+        }
+        if (attachments.hasPhoto) {
           page.drawLine({
             start: {
-              x: 378 - CROSS_SIZE_SMALL_XS,
-              y: 564 - CROSS_SIZE_SMALL_XS,
+              x: 421 - CROSS_SIZE_SMALL_XS,
+              y: 546 - CROSS_SIZE_SMALL_XS,
             },
-            end: { x: 378 + CROSS_SIZE_SMALL_XS, y: 564 + CROSS_SIZE_SMALL_XS },
+            end: { x: 421 + CROSS_SIZE_SMALL_XS, y: 546 + CROSS_SIZE_SMALL_XS },
             thickness: 1,
             color: rgb(0, 0.5, 0.9),
           });
 
           page.drawLine({
             start: {
-              x: 378 - CROSS_SIZE_SMALL_XS,
-              y: 564 + CROSS_SIZE_SMALL_XS,
+              x: 421 - CROSS_SIZE_SMALL_XS,
+              y: 546 + CROSS_SIZE_SMALL_XS,
             },
-            end: { x: 378 + CROSS_SIZE_SMALL_XS, y: 564 - CROSS_SIZE_SMALL_XS },
+            end: { x: 421 + CROSS_SIZE_SMALL_XS, y: 546 - CROSS_SIZE_SMALL_XS },
             thickness: 1,
             color: rgb(0, 0.5, 0.9),
           });
         }
-        if (attachments.isCarsOthers === "o") {
-          page.drawLine({
-            start: {
-              x: 437 - CROSS_SIZE_SMALL_XS,
-              y: 564 - CROSS_SIZE_SMALL_XS,
-            },
-            end: { x: 437 + CROSS_SIZE_SMALL_XS, y: 564 + CROSS_SIZE_SMALL_XS },
-            thickness: 1,
-            color: rgb(0, 0.5, 0.9),
-          });
+        page.drawText(String(attachments.specialPosition ?? ""), {
+          x: 465,
+          y: 630,
+          size: 9,
+          font: SINHALA_REGEX.test(String(attachments.specialPosition))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+        page.drawText(String(attachments.color ?? ""), {
+          x: 528,
+          y: 563,
+          size: 9,
+          font: SINHALA_REGEX.test(String(attachments.color))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+        page.drawText(String(attachments.adminNotes ?? ""), {
+          x: 31,
+          y: 244,
+          size: 9,
+          font: SINHALA_REGEX.test(String(attachments.adminNotes))
+            ? sinhalaFont
+            : englishFont,
+          color: rgb(0, 0.5, 0.9),
+        });
+      }
 
-          page.drawLine({
-            start: {
-              x: 437 - CROSS_SIZE_SMALL_XS,
-              y: 564 + CROSS_SIZE_SMALL_XS,
-            },
-            end: { x: 437 + CROSS_SIZE_SMALL_XS, y: 564 - CROSS_SIZE_SMALL_XS },
-            thickness: 1,
-            color: rgb(0, 0.5, 0.9),
-          });
+      //reference, word count, category, vehicle brand, ad height, no of columns
+      {
+        page.drawText(String(reference_number ?? ""), {
+          x: 52,
+          y: 543,
+          size: 9,
+          font: SINHALA_REGEX.test(String(reference_number))
+            ? sinhalaFont
+            : englishFont,
+        });
+
+        page.drawText(String(effective_word_count ?? ""), {
+          x: 340,
+          y: 710,
+          size: 9,
+          font: SINHALA_REGEX.test(String(effective_word_count))
+            ? sinhalaFont
+            : englishFont,
+        });
+
+        //category
+        page.drawText(String(subcategory ?? ""), {
+          x: 340,
+          y: 663,
+          size: 9,
+          font: SINHALA_REGEX.test(String(subcategory))
+            ? sinhalaFont
+            : englishFont,
+        });
+
+        page.drawText(String(classified_ad?.vehicle_brand ?? ""), {
+          x: 343,
+          y: 580,
+          size: 10,
+          font: SINHALA_REGEX.test(String(classified_ad?.vehicle_brand ?? ""))
+            ? sinhalaFont
+            : englishFont,
+        });
+
+        //h x w
+        page.drawText(String(casual_ad?.ad_height ?? ""), {
+          x: 465,
+          y: 669,
+          size: 10,
+          font: SINHALA_REGEX.test(String(casual_ad?.ad_height))
+            ? sinhalaFont
+            : englishFont,
+        });
+
+        page.drawText(String(casual_ad?.no_of_columns ?? ""), {
+          x: 530,
+          y: 669,
+          size: 10,
+          font: SINHALA_REGEX.test(String(casual_ad?.no_of_columns))
+            ? sinhalaFont
+            : englishFont,
+        });
+      }
+
+      // color options
+      {
+        if (casual_ad?.color_option === "fc") {
+          color_x = 513;
+          color_y = 543;
+        } else if (casual_ad?.color_option === "bw1") {
+          color_x = 513;
+          color_y = 574;
+        } else if (casual_ad?.color_option === "bw2") {
+          color_x = 513;
+          color_y = 559;
+        } else if (casual_ad?.color_option === "bw") {
+          color_x = 513;
+          color_y = 592;
         }
-      }
-      if (attachments.hasPhoto) {
+
         page.drawLine({
-          start: { x: 421 - CROSS_SIZE_SMALL_XS, y: 546 - CROSS_SIZE_SMALL_XS },
-          end: { x: 421 + CROSS_SIZE_SMALL_XS, y: 546 + CROSS_SIZE_SMALL_XS },
+          start: {
+            x: color_x - CROSS_SIZE_SMALL_XS,
+            y: color_y - CROSS_SIZE_SMALL_XS,
+          },
+          end: {
+            x: color_x + CROSS_SIZE_SMALL_XS,
+            y: color_y + CROSS_SIZE_SMALL_XS,
+          },
           thickness: 1,
-          color: rgb(0, 0.5, 0.9),
         });
 
         page.drawLine({
-          start: { x: 421 - CROSS_SIZE_SMALL_XS, y: 546 + CROSS_SIZE_SMALL_XS },
-          end: { x: 421 + CROSS_SIZE_SMALL_XS, y: 546 - CROSS_SIZE_SMALL_XS },
+          start: {
+            x: color_x - CROSS_SIZE_SMALL_XS,
+            y: color_y + CROSS_SIZE_SMALL_XS,
+          },
+          end: {
+            x: color_x + CROSS_SIZE_SMALL_XS,
+            y: color_y - CROSS_SIZE_SMALL_XS,
+          },
           thickness: 1,
-          color: rgb(0, 0.5, 0.9),
         });
       }
-      page.drawText(String(attachments.specialPosition ?? ""), {
-        x: 465,
-        y: 630,
-        size: 9,
-        font: SINHALA_REGEX.test(String(attachments.specialPosition))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
-      page.drawText(String(attachments.color ?? ""), {
-        x: 528,
-        y: 563,
-        size: 9,
-        font: SINHALA_REGEX.test(String(attachments.color))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
-      page.drawText(String(attachments.adminNotes ?? ""), {
-        x: 31,
-        y: 244,
-        size: 9,
-        font: SINHALA_REGEX.test(String(attachments.adminNotes))
-          ? sinhalaFont
-          : englishFont,
-        color: rgb(0, 0.5, 0.9),
-      });
 
-      //receipt
-      page.drawText(String(reference_number ?? ""), {
-        x: 52,
-        y: 543,
-        size: 9,
-        font: SINHALA_REGEX.test(String(reference_number))
-          ? sinhalaFont
-          : englishFont,
-      });
+      // if (ad_type.key !== "casual") {
+      //   // Normalize ad text
+      //   const normalizedText = normalizeAdText(
+      //     finalAdvertisementText,
+      //     agency.ad_text_type,
+      //   );
+      //   const { COLUMN_X, ROW_Y } = getCoordinates(agency.publisher_name);
+      //   const wordsToPrint = Math.min(
+      //     normalizedText.length,
+      //     MAX_WORDS,
+      //     COLUMN_X.length * ROW_Y.length,
+      //   );
 
-      page.drawText(String(effective_word_count ?? ""), {
-        x: 340,
-        y: 710,
-        size: 9,
-        font: SINHALA_REGEX.test(String(effective_word_count))
-          ? sinhalaFont
-          : englishFont,
-      });
+      //   // Draw ad text
+      //   for (let i = 0; i < wordsToPrint; i++) {
+      //     const col = i % COLUMN_X.length;
+      //     const row = Math.floor(i / COLUMN_X.length);
+      //     if (row >= ROW_Y.length) break;
 
-      //category
-      page.drawText(String(subcategory ?? ""), {
-        x: 340,
-        y: 663,
-        size: 9,
-        font: SINHALA_REGEX.test(String(subcategory))
-          ? sinhalaFont
-          : englishFont,
-      });
+      //     const text = normalizedText[i];
 
-      page.drawText(String(classified_ad?.vehicle_brand ?? ""), {
-        x: 343,
-        y: 580,
-        size: 10,
-        font: SINHALA_REGEX.test(String(classified_ad?.vehicle_brand ?? ""))
-          ? sinhalaFont
-          : englishFont,
-      });
+      //     if (SINHALA_REGEX.test(text)) {
+      //       const pngBuffer = renderSinhalaTextToImage(text, 18);
+      //       const pngImage = await pdfDoc.embedPng(pngBuffer);
+      //       const dims = pngImage.scale(0.5); // adjust scale to fit
 
-      //h x w
-      page.drawText(String(casual_ad?.ad_height ?? ""), {
-        x: 465,
-        y: 669,
-        size: 10,
-        font: SINHALA_REGEX.test(String(casual_ad?.ad_height))
-          ? sinhalaFont
-          : englishFont,
-      });
-
-      // page.drawText(" x ", {
-      //   x: 270,
-      //   y: 534,
-      //   size: 10,
-      //   font: SINHALA_REGEX.test(" x ") ? sinhalaFont : englishFont,
-      // });
-
-      page.drawText(String(casual_ad?.no_of_columns ?? ""), {
-        x: 530,
-        y: 669,
-        size: 10,
-        font: SINHALA_REGEX.test(String(casual_ad?.no_of_columns))
-          ? sinhalaFont
-          : englishFont,
-      });
-
-      if (casual_ad?.color_option === "fc") {
-        color_x = 498;
-        color_y = 533;
-      } else if (casual_ad?.color_option === "bw1") {
-        color_x = 498;
-        color_y = 564;
-      } else if (casual_ad?.color_option === "bw2") {
-        color_x = 498;
-        color_y = 549;
-      } else if (casual_ad?.color_option === "bw") {
-        color_x = 498;
-        color_y = 582;
-      }
-
-      page.drawLine({
-        start: {
-          x: color_x - CROSS_SIZE_SMALL_XS,
-          y: color_y - CROSS_SIZE_SMALL_XS,
-        },
-        end: {
-          x: color_x + CROSS_SIZE_SMALL_XS,
-          y: color_y + CROSS_SIZE_SMALL_XS,
-        },
-        thickness: 1,
-      });
-
-      page.drawLine({
-        start: {
-          x: color_x - CROSS_SIZE_SMALL_XS,
-          y: color_y + CROSS_SIZE_SMALL_XS,
-        },
-        end: {
-          x: color_x + CROSS_SIZE_SMALL_XS,
-          y: color_y - CROSS_SIZE_SMALL_XS,
-        },
-        thickness: 1,
-      });
-
+      //       page.drawImage(pngImage, {
+      //         x: COLUMN_X[col],
+      //         y: ROW_Y[row] - dims.height, // shift down by image height
+      //         width: dims.width,
+      //         height: dims.height,
+      //       });
+      //     } else {
+      //       page.drawText(text, {
+      //         x: COLUMN_X[col],
+      //         y: ROW_Y[row],
+      //         size: 9,
+      //         font: englishFont,
+      //       });
+      //     }
+      //   }
+      // }
       if (ad_type.key !== "casual") {
         // Normalize ad text
         const normalizedText = normalizeAdText(
@@ -2314,78 +2493,70 @@ export async function POST(req: Request) {
           if (row >= ROW_Y.length) break;
 
           const text = normalizedText[i];
+          const pngBuffer = renderSinhalaTextToImage(text, 22);
+          const pngImage = await pdfDoc.embedPng(pngBuffer);
+          const dims = pngImage.scale(0.5);
 
-          if (SINHALA_REGEX.test(text)) {
-            const pngBuffer = renderSinhalaTextToImage(text, 18);
-            const pngImage = await pdfDoc.embedPng(pngBuffer);
-            const dims = pngImage.scale(0.5); // adjust scale to fit
-
-            page.drawImage(pngImage, {
-              x: COLUMN_X[col],
-              y: ROW_Y[row] - dims.height, // shift down by image height
-              width: dims.width,
-              height: dims.height,
-            });
-          } else {
-            page.drawText(text, {
-              x: COLUMN_X[col],
-              y: ROW_Y[row],
-              size: 9,
-              font: englishFont,
-            });
-          }
+          page.drawImage(pngImage, {
+            x: COLUMN_X[col],
+            y: ROW_Y[row] - dims.height,
+            width: dims.width,
+            height: dims.height,
+          });
         }
       }
 
       //advertiser details
-      const formattedName = formatAdvertiserName(advertiser_name);
-      await drawSmartText({
-        page,
-        pdfDoc,
-        text: formattedName,
-        x: 43,
-        y: 92,
-        fontSize: 9,
-        englishFont,
-      });
+      {
+        const formattedName = formatAdvertiserName(advertiser_name);
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: formattedName,
+          x: 43,
+          y: 92,
+          fontSize: 9,
+          englishFont,
+        });
 
-      await drawSmartText({
-        page,
-        pdfDoc,
-        text: advertiser_address ?? "",
-        x: 55,
-        y: 69,
-        fontSize: 10,
-        englishFont,
-      });
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: advertiser_address ?? "",
+          x: 55,
+          y: 69,
+          fontSize: 10,
+          englishFont,
+        });
 
-      page.drawText(String(advertiser_phone ?? ""), {
-        x: 240,
-        y: 45,
-        size: 9,
-        font: SINHALA_REGEX.test(String(advertiser_phone))
-          ? sinhalaFont
-          : englishFont,
-      });
+        page.drawText(String(advertiser_phone ?? ""), {
+          x: 240,
+          y: 45,
+          size: 9,
+          font: SINHALA_REGEX.test(String(advertiser_phone))
+            ? sinhalaFont
+            : englishFont,
+        });
 
-      page.drawText(String(advertiser_nic ?? ""), {
-        x: 77,
-        y: 45,
-        size: 9,
-        font: SINHALA_REGEX.test(String(advertiser_nic))
-          ? sinhalaFont
-          : englishFont,
-      });
+        page.drawText(String(advertiser_nic ?? ""), {
+          x: 77,
+          y: 45,
+          size: 9,
+          font: SINHALA_REGEX.test(String(advertiser_nic))
+            ? sinhalaFont
+            : englishFont,
+        });
 
-      await drawSmartText({
-        page,
-        pdfDoc,
-        text: getSignature(advertiser_name),
-        x: 225,
-        y: 20,
-        fontSize: 9,
-        englishFont,
-      });
+        await drawSmartText({
+          page,
+          pdfDoc,
+          text: getSignature(advertiser_name),
+          x: 225,
+          y: 20,
+          fontSize: 9,
+          englishFont,
+        });
+      }
 
       // is photo classified?
       if (ad_type === "photo_classified") {

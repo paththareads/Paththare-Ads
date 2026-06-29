@@ -541,7 +541,10 @@ export default function AdminAdvertisements() {
         /* ---------------- Ad classification ---------------- */
         ad_type: editableAd.ad_type,
         category: editableAd.classified_category ?? null,
-        subcategory: editableAd.subcategory ?? null,
+        subcategory:
+          editableAd.ad_type === "name_notice"
+            ? "310"
+            : (editableAd.subcategory ?? null),
         count_first_words: editableAd.count_first_words ?? null,
 
         /* ---------------- Dates ---------------- */
@@ -1593,31 +1596,50 @@ export default function AdminAdvertisements() {
 
                       {/* IMAGES */}
                       {selectedAd.uploaded_images &&
-                        selectedAd.uploaded_images?.length > 0 && (
+                        selectedAd.uploaded_images.length > 0 && (
                           <div className="px-8 py-4 border-t space-y-4">
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div className="grid gap-3">
                               {selectedAd.uploaded_images.map((url, index) => (
-                                <button
+                                <a
                                   key={url}
-                                  type="button"
-                                  onClick={() => setPreviewImage(url)}
-                                  className="group"
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
                                 >
-                                  <img
-                                    src={url}
-                                    alt={`Uploaded image ${index + 1}`}
-                                    className="w-full h-32 object-cover rounded-lg border group-hover:opacity-90 transition"
-                                  />
-                                  <p className="mt-1 text-xs text-center text-gray-500">
-                                    Click to preview
-                                  </p>
-                                </button>
+                                  <div className="flex items-center gap-3">
+                                    <div className="text-2xl">📄</div>
+                                    <div>
+                                      <p className="font-medium">
+                                        PDF Document {index + 1}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        Click to view PDF
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="w-5 h-5 text-gray-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M14 3h7m0 0v7m0-7L10 14"
+                                    />
+                                  </svg>
+                                </a>
                               ))}
                             </div>
 
                             <div className="flex items-center justify-between">
                               <span className="text-sm text-gray-500">
-                                {selectedAd.uploaded_images.length} image(s)
+                                {selectedAd.uploaded_images.length} PDF file(s)
                                 uploaded
                               </span>
 
@@ -1629,7 +1651,7 @@ export default function AdminAdvertisements() {
                                     setRequestImageChange(e.target.checked)
                                   }
                                 />
-                                Request Image Change
+                                Request Document Change
                               </label>
                             </div>
                           </div>
